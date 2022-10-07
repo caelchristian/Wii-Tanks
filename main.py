@@ -2,10 +2,14 @@
 Starting Template
 """
 import arcade
+import Tanks
+import sys
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Starting Template"
+
+MOVEMENT_SPEED = 5
 
 
 class MyGame(arcade.Window):
@@ -34,7 +38,7 @@ class MyGame(arcade.Window):
 
         # Set up the player, specifically placing it at these coordinates.
         image_source = "TANK.png"
-        self.player_sprite = arcade.Sprite(image_source, 3)
+        self.player_sprite = Tanks.Player(image_source, 3)
         self.player_sprite.center_x = 64
         self.player_sprite.center_y = 128
         self.player_list.append(self.player_sprite)
@@ -62,7 +66,10 @@ class MyGame(arcade.Window):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
+        self.player_list.update()
         pass
+    
+    
 
     def on_key_press(self, key, key_modifiers):
         """
@@ -70,12 +77,32 @@ class MyGame(arcade.Window):
         For a full list of keys, see:
         http://arcade.academy/arcade.key.html
         """
-        pass
+
+        # If the player presses a key, update the speed
+        if key == arcade.key.UP:
+            self.player_sprite.change_y = MOVEMENT_SPEED
+        elif key == arcade.key.DOWN:
+            self.player_sprite.change_y = -MOVEMENT_SPEED
+        elif key == arcade.key.LEFT:
+            self.player_sprite.change_x = -MOVEMENT_SPEED
+        elif key == arcade.key.RIGHT:
+            self.player_sprite.change_x = MOVEMENT_SPEED
+
 
     def on_key_release(self, key, key_modifiers):
         """
         Called whenever the user lets off a previously pressed key.
         """
+        # If a player releases a key, zero out the speed.
+        # This doesn't work well if multiple keys are pressed.
+        # Use 'better move by keyboard' example if you need to
+        # handle this.
+        
+        if key == arcade.key.UP or key == arcade.key.DOWN:
+            self.player_sprite.change_y = 0
+        elif key == arcade.key.LEFT or key == arcade.key.RIGHT:
+            self.player_sprite.change_x = 0
+        
         pass
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
