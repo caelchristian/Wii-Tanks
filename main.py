@@ -23,10 +23,21 @@ class MyGame(arcade.Window):
 
         # If you have sprite lists, you should create them here,
         # and set them to None
+        self.player_list = None
 
     def setup(self):
         # Create your sprites and sprite lists here
-         self.background = arcade.load_texture("background.jpg")
+        self.background = arcade.load_texture("background.jpg")
+
+        # Create the Sprite lists
+        self.player_list = arcade.SpriteList()
+
+        # Set up the player, specifically placing it at these coordinates.
+        image_source = "TANK.png"
+        self.player_sprite = arcade.Sprite(image_source, 3)
+        self.player_sprite.center_x = 64
+        self.player_sprite.center_y = 128
+        self.player_list.append(self.player_sprite)
 
     def on_draw(self):
         """
@@ -43,6 +54,7 @@ class MyGame(arcade.Window):
                                             self.background)
 
         # Call draw() on all your sprite lists below
+        self.player_list.draw()
 
     def on_update(self, delta_time):
         """
