@@ -4,6 +4,7 @@ Starting Template
 import arcade
 import Tanks
 import sys
+import math
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -42,6 +43,7 @@ class MyGame(arcade.Window):
         self.player_sprite.center_x = 64
         self.player_sprite.center_y = 128
         self.player_list.append(self.player_sprite)
+        self.player_sprite.angle = 180
 
     def on_draw(self):
         """
@@ -109,6 +111,17 @@ class MyGame(arcade.Window):
         """
         Called whenever the mouse moves.
         """
+        # Position the start at the player's current location
+        start_x = self.player_sprite.center_x
+        start_y = self.player_sprite.center_y
+
+        x_diff = x - start_x
+        y_diff = y - start_y
+
+        angle = math.atan2(y_diff, x_diff)
+
+        self.player_sprite.angle = math.degrees(angle) - 90
+
         pass
 
     def on_mouse_press(self, x, y, button, key_modifiers):
