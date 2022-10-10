@@ -11,6 +11,7 @@ SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Starting Template"
 
 MOVEMENT_SPEED = 5
+BULLET_SPEED = 5
 
 
 class MyGame(arcade.Window):
@@ -29,6 +30,7 @@ class MyGame(arcade.Window):
         # If you have sprite lists, you should create them here,
         # and set them to None
         self.player_list = None
+        self.bullet_list = None
 
     def setup(self):
         # Create your sprites and sprite lists here
@@ -36,6 +38,7 @@ class MyGame(arcade.Window):
 
         # Create the Sprite lists
         self.player_list = arcade.SpriteList()
+        self.bullet_list = arcade.SpriteList()
 
         # Set up the player, specifically placing it at these coordinates.
         image_source = "TANK.png"
@@ -61,6 +64,7 @@ class MyGame(arcade.Window):
 
         # Call draw() on all your sprite lists below
         self.player_list.draw()
+        self.bullet_list.draw()
 
     def on_update(self, delta_time):
         """
@@ -69,6 +73,11 @@ class MyGame(arcade.Window):
         need it.
         """
         self.player_list.update()
+
+        self.bullet_list.update()
+        for bullet in self.bullet_list:
+            if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
+                bullet.remove_from_sprite_lists()
         pass
     
     
@@ -128,6 +137,33 @@ class MyGame(arcade.Window):
         """
         Called when the user presses a mouse button.
         """
+        # Make bullet
+        bullet = arcade.Sprite("bullet_sprite.png", 0.009)
+
+        # Position bullet at player's location
+        start_x = self.player_sprite.center_x
+        start_y = self.player_sprite.center_y
+
+        bullet.center_x = start_x
+        bullet.center_y = start_y
+
+        # Destination for bullet (location of mouse)
+        dest_x = x
+        dest_y = y
+
+        # Angle the bullet travels
+        x_diff = dest_x - start_x
+        y_diff = dest_y - start_y
+        angle = math.atan2(y_diff, x_diff)
+
+        bullet.angle = math.degrees(angle)
+
+        # Velocity
+        bullet.change_x = math.cos(angle) * BULLET_SPEED
+        bullet.change_y = math.sin(angle) * BULLET_SPEED
+
+        self.bullet_list.append(bullet)
+
         pass
 
     def on_mouse_release(self, x, y, button, key_modifiers):
