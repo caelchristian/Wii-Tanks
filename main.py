@@ -133,12 +133,9 @@ class MyGame(arcade.Window):
         """
         Called whenever the mouse moves.
         """
-        width = (x - self.turret_sprite.center_x) 
-        height = (y - self.turret_sprite.center_y)
-        if width > 0:
-            self.turret_sprite.angle = np.degrees(np.arctan(height / width)) + 270
-        elif width < 0:
-            self.turret_sprite.angle = np.degrees(np.arctan(height / width)) + 90
+
+        self.turret_sprite.target_x = x
+        self.turret_sprite.target_y = y
 
 
         pass
