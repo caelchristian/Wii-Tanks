@@ -50,9 +50,9 @@ class MyGame(arcade.Window):
         self.player_sprite.angle = 180
 
         image_source = "Turret.png"
-        self.turret_sprite = arcade.Sprite(image_source, 3)
+        self.turret_sprite = Tanks.Turret(image_source, 3)
         self.turret_sprite.center_x = 64
-        self.turret_sprite.center_y = 120
+        self.turret_sprite.center_y = 130
         self.player_list.append(self.turret_sprite)
 
     def on_draw(self):
@@ -99,12 +99,16 @@ class MyGame(arcade.Window):
         # If the player presses a key, update the speed
         if key == arcade.key.UP:
             self.player_sprite.change_y = MOVEMENT_SPEED
+            self.turret_sprite.change_y = MOVEMENT_SPEED
         elif key == arcade.key.DOWN:
             self.player_sprite.change_y = -MOVEMENT_SPEED
+            self.turret_sprite.change_y = -MOVEMENT_SPEED
         elif key == arcade.key.LEFT:
             self.player_sprite.change_x = -MOVEMENT_SPEED
+            self.turret_sprite.change_x = -MOVEMENT_SPEED
         elif key == arcade.key.RIGHT:
             self.player_sprite.change_x = MOVEMENT_SPEED
+            self.turret_sprite.change_x = MOVEMENT_SPEED
 
 
     def on_key_release(self, key, key_modifiers):
@@ -118,8 +122,10 @@ class MyGame(arcade.Window):
         
         if key == arcade.key.UP or key == arcade.key.DOWN:
             self.player_sprite.change_y = 0
+            self.turret_sprite.change_y = 0
         elif key == arcade.key.LEFT or key == arcade.key.RIGHT:
             self.player_sprite.change_x = 0
+            self.turret_sprite.change_x = 0
         
         pass
 
