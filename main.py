@@ -5,6 +5,7 @@ import arcade
 import Tanks
 import sys
 import math
+import numpy as np
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -47,6 +48,12 @@ class MyGame(arcade.Window):
         self.player_sprite.center_y = 128
         self.player_list.append(self.player_sprite)
         self.player_sprite.angle = 180
+
+        image_source = "Turret.png"
+        self.turret_sprite = arcade.Sprite(image_source, 3)
+        self.turret_sprite.center_x = 64
+        self.turret_sprite.center_y = 120
+        self.player_list.append(self.turret_sprite)
 
     def on_draw(self):
         """
@@ -120,16 +127,13 @@ class MyGame(arcade.Window):
         """
         Called whenever the mouse moves.
         """
-        # Position the start at the player's current location
-        start_x = self.player_sprite.center_x
-        start_y = self.player_sprite.center_y
+        width = (x - self.turret_sprite.center_x) 
+        height = (y - self.turret_sprite.center_y)
+        if width > 0:
+            self.turret_sprite.angle = np.degrees(np.arctan(height / width)) + 270
+        elif width < 0:
+            self.turret_sprite.angle = np.degrees(np.arctan(height / width)) + 90
 
-        x_diff = x - start_x
-        y_diff = y - start_y
-
-        angle = math.atan2(y_diff, x_diff)
-
-        self.player_sprite.angle = math.degrees(angle) - 90
 
         pass
 
