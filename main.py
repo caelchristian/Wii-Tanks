@@ -11,7 +11,7 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Starting Template"
 
-MOVEMENT_SPEED = 5
+MOVEMENT_SPEED = 3
 BULLET_SPEED = 5
 
 
@@ -39,29 +39,29 @@ class MyGame(arcade.Window):
         self.background = arcade.load_texture("background.jpg")
 
         # Create the Sprite lists
-        self.player_list = arcade.SpriteList()
         self.bullet_list = arcade.SpriteList()
         self.enemy_list = arcade.SpriteList()
+        self.player_list = arcade.SpriteList()
 
         # Set up the player, specifically placing it at these coordinates.
-        image_source = "TANK.png"
-        self.player_sprite = Tanks.Player(image_source, 3)
+        image_source = "assets/tankBody_blue.png"
+        self.player_sprite = Tanks.Player(image_source, 1)
         self.player_sprite.center_x = 64
         self.player_sprite.center_y = 128
         self.player_list.append(self.player_sprite)
         self.player_sprite.angle = 180
         
         # Create EnemyTank (and set position to middle of screen)
-        self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_darkLarge_outline.png")
+        self.enemy_sprite = Tanks.EnemyTank("assets/tank_red.png")
         self.enemy_sprite.center_x = SCREEN_WIDTH - 64
         self.enemy_sprite.center_y = SCREEN_HEIGHT - 128
         self.enemy_list.append(self.enemy_sprite)
         self.enemy_sprite.angle = 180
 
-        image_source = "Turret.png"
-        self.turret_sprite = Tanks.Turret(image_source, 3)
+        image_source = "assets/tankBlue_barrel2_outline.png"
+        self.turret_sprite = Tanks.Turret(image_source, 1)
         self.turret_sprite.center_x = 64
-        self.turret_sprite.center_y = 130
+        self.turret_sprite.center_y = 128
         self.player_list.append(self.turret_sprite)
         
 
@@ -80,10 +80,9 @@ class MyGame(arcade.Window):
                                             self.background)
 
         # Call draw() on all your sprite lists below
-        self.player_list.draw()
         self.bullet_list.draw()
         self.enemy_list.draw()
-        
+        self.player_list.draw()
 
     def on_update(self, delta_time):
         """
@@ -114,15 +113,19 @@ class MyGame(arcade.Window):
         if key == arcade.key.UP:
             self.player_sprite.change_y = MOVEMENT_SPEED
             self.turret_sprite.change_y = MOVEMENT_SPEED
+            self.player_sprite.angle = 180
         elif key == arcade.key.DOWN:
             self.player_sprite.change_y = -MOVEMENT_SPEED
             self.turret_sprite.change_y = -MOVEMENT_SPEED
+            self.player_sprite.angle = 0
         elif key == arcade.key.LEFT:
             self.player_sprite.change_x = -MOVEMENT_SPEED
             self.turret_sprite.change_x = -MOVEMENT_SPEED
+            self.player_sprite.angle = 270
         elif key == arcade.key.RIGHT:
             self.player_sprite.change_x = MOVEMENT_SPEED
             self.turret_sprite.change_x = MOVEMENT_SPEED
+            self.player_sprite.angle = 90
 
 
     def on_key_release(self, key, key_modifiers):
@@ -159,7 +162,7 @@ class MyGame(arcade.Window):
         Called when the user presses a mouse button.
         """
         # Make bullet
-        bullet = arcade.Sprite("bullet_sprite.png", 0.009)
+        bullet = arcade.Sprite("assets/bulletDark1_outline.png", 1)
 
         # Position bullet at player's location
         start_x = self.player_sprite.center_x
@@ -177,7 +180,7 @@ class MyGame(arcade.Window):
         y_diff = dest_y - start_y
         angle = math.atan2(y_diff, x_diff)
 
-        bullet.angle = math.degrees(angle)
+        bullet.angle = math.degrees(angle) - 90
 
         # Velocity
         bullet.change_x = math.cos(angle) * BULLET_SPEED

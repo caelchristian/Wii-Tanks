@@ -73,9 +73,9 @@ class Turret(arcade.Sprite):
         width = (self.target_x - self.center_x) 
         height = (self.target_y - self.center_y)
         if width > 0:
-            self.angle = np.degrees(np.arctan(height / width)) + 270
-        elif width < 0:
             self.angle = np.degrees(np.arctan(height / width)) + 90
+        elif width < 0:
+            self.angle = np.degrees(np.arctan(height / width)) + 270
             
             
 class EnemyTank(arcade.Sprite):
