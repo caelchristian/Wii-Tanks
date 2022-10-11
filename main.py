@@ -32,6 +32,7 @@ class MyGame(arcade.Window):
         # and set them to None
         self.player_list = None
         self.bullet_list = None
+        self.enemy_list = None
 
     def setup(self):
         # Create your sprites and sprite lists here
@@ -40,6 +41,7 @@ class MyGame(arcade.Window):
         # Create the Sprite lists
         self.player_list = arcade.SpriteList()
         self.bullet_list = arcade.SpriteList()
+        self.enemy_list = arcade.SpriteList()
 
         # Set up the player, specifically placing it at these coordinates.
         image_source = "TANK.png"
@@ -48,12 +50,20 @@ class MyGame(arcade.Window):
         self.player_sprite.center_y = 128
         self.player_list.append(self.player_sprite)
         self.player_sprite.angle = 180
+        
+        # Create EnemyTank (and set position to middle of screen)
+        self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_darkLarge_outline.png")
+        self.enemy_sprite.center_x = SCREEN_WIDTH - 64
+        self.enemy_sprite.center_y = SCREEN_HEIGHT - 128
+        self.enemy_list.append(self.enemy_sprite)
+        self.enemy_sprite.angle = 180
 
         image_source = "Turret.png"
         self.turret_sprite = Tanks.Turret(image_source, 3)
         self.turret_sprite.center_x = 64
         self.turret_sprite.center_y = 130
         self.player_list.append(self.turret_sprite)
+        
 
     def on_draw(self):
         """
@@ -72,6 +82,8 @@ class MyGame(arcade.Window):
         # Call draw() on all your sprite lists below
         self.player_list.draw()
         self.bullet_list.draw()
+        self.enemy_list.draw()
+        
 
     def on_update(self, delta_time):
         """
@@ -85,8 +97,10 @@ class MyGame(arcade.Window):
         for bullet in self.bullet_list:
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.remove_from_sprite_lists()
+                
+        self.enemy_list.update()
+        
         pass
-    
     
 
     def on_key_press(self, key, key_modifiers):
