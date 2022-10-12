@@ -58,7 +58,7 @@ class MyGame(arcade.Window):
         self.enemy_list.append(self.enemy_sprite)
         self.enemy_sprite.angle = 180
 
-        image_source = "assets/tankBlue_barrel2_outline.png"
+        image_source = "assets/tankBlue_barrel_rotate.png"
         self.turret_sprite = Tanks.Turret(image_source, 1)
         self.turret_sprite.center_x = 64
         self.turret_sprite.center_y = 128
