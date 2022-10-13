@@ -1,3 +1,7 @@
+"""
+Tanks.py contains constants and classes used for the Tanks Game
+"""
+
 from enum import Enum
 import arcade
 import numpy as np
@@ -5,9 +9,13 @@ import numpy as np
 # Constants
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
+SCREEN_TITLE = "Tank Game"
+MOVEMENT_SPEED = 3
+BULLET_SPEED = 5
+
 class Color(Enum):
     """Enum for EnemyTank class.
-    Each color colalates to a different color tank.
+    Each color correlates to a different color tank.
     Depending on the color, different attributes will
     be loaded when constructing a EnemyTank.
 
@@ -25,30 +33,43 @@ class Color(Enum):
     BLACK: 9
 
 class Player(arcade.Sprite):
-    """ Player Class """
+    """
+    Player Tank Class. Inherits from arcade.Sprite to allow setting textures
+    """
 
     def update(self):
-        """ Move the player """
-        # Move player.
-        # Remove these lines if physics engine is moving player.
+        """
+        Updates the Player Tank sprite 
+        """
+        # Move player
         self.center_x += self.change_x
         self.center_y += self.change_y
 
 
 class Turret(arcade.Sprite):
-    """ Turret Class """
+    """ 
+    Player Turret (Gun) Class. Inherits from arcade.Sprite to allow setting textures
+    """
     def __init__(self, image_source, scale=1):
+        """Constructor for the Turret class
+
+        Args:
+            image_source (_type_): file path of the sprite image
+            scale (int, optional): scales the sprite. Defaults to 1.
+        """
         super().__init__(image_source, scale, hit_box_algorithm="None")
         self.target_x = 0
         self.target_y = 0
 
     def update(self):
-        """ Move the turret """
-        # Remove these lines if physics engine is moving player.
+        """ 
+        Updates the turret sprite 
+        """
+        # Move the turret
         self.center_x += self.change_x
         self.center_y += self.change_y
         
-        # Turret follows mouse
+        # Turret always points towards the mouse
         width = (self.target_x - self.center_x) 
         height = (self.target_y - self.center_y)
         if width > 0:
@@ -58,13 +79,16 @@ class Turret(arcade.Sprite):
             
             
 class EnemyTank(arcade.Sprite):
-    """ Parent Class of all color tanks
-
-    Args:
-        arcade.Sprite: Inherits from arcade.Sprite to allow setting textures
+    """ 
+    Parent class of all enemy tanks. Inherits from arcade.Sprite to allow setting textures
     """
     def __init__(self, image_source, scale=1):
-        # same as "arcade.Sprite.__init__(self)"
+        """Constructor for the EnemyTank class
+
+        Args:
+            image_source (_type_): file path of the sprite image
+            scale (int, optional): scales the sprite. Defaults to 1.
+        """
         super().__init__(image_source, scale, hit_box_algorithm="None")
         self.target_x = 0
         self.target_y = 0
