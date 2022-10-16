@@ -14,6 +14,21 @@ SCREEN_TITLE = "Starting Template"
 MOVEMENT_SPEED = 3
 BULLET_SPEED = 5
 
+EXPLOSION_TEXTURE_COUNT = 60
+
+class Explosion(arcade.Sprite):
+    def __init__(self, texture_list):
+        super().__init__()
+
+        self.current_texture = 0
+        self.textures = texture_list
+
+    def update(self):
+        self.current_texture += 1
+        if self.current_texture < len(self.textures):
+            self.set_texture(self.current_texture)
+        else:
+            self.remove_from_sprite_lists()
 
 class MyGame(arcade.Window):
     """
@@ -33,6 +48,17 @@ class MyGame(arcade.Window):
         self.player_list = None
         self.bullet_list = None
         self.enemy_list = None
+        self.explosions_list = None
+
+        self.explosion_texture_list = []
+
+        columns = 16
+        count = 60
+        sprite_width = 256
+        sprite_height = 256
+        file_name = "assets/explosion1.png"
+
+        self.explosion_texture_list = arcade.load_spritesheet(file_name, sprite_width, sprite_height, columns, count)
 
     def setup(self):
         # Create your sprites and sprite lists here
@@ -42,6 +68,7 @@ class MyGame(arcade.Window):
         self.bullet_list = arcade.SpriteList()
         self.enemy_list = arcade.SpriteList()
         self.player_list = arcade.SpriteList()
+        self.explosions_list = arcade.SpriteList()
 
         # Set up the player, specifically placing it at these coordinates.
         image_source = "assets/tankBody_blue.png"
@@ -83,6 +110,7 @@ class MyGame(arcade.Window):
         self.bullet_list.draw()
         self.enemy_list.draw()
         self.player_list.draw()
+        self.explosions_list.draw()
 
     def on_update(self, delta_time):
         """
@@ -91,15 +119,34 @@ class MyGame(arcade.Window):
         need it.
         """
         self.player_list.update()
-
         self.bullet_list.update()
+        self.enemy_list.update()
+        self.explosions_list.update()
+
         for bullet in self.bullet_list:
+            hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
+
+            if len(hit_list) > 0:
+
+                # Make the explosion
+                explosion = Explosion(self.explosion_texture_list)
+
+                # Move it to location of the enemy tank
+                explosion.center_x = hit_list[0].center_x
+                explosion.center_y = hit_list[0].center_y
+
+                explosion.update()
+
+                # Add to list of explosion sprites
+                self.explosions_list.append(explosion)
+
+                # Hide the bullet
+                bullet.remove_from_sprite_lists()
+
+
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.remove_from_sprite_lists()
-                
-        self.enemy_list.update()
-        
-        pass
+
     
 
     def on_key_press(self, key, key_modifiers):

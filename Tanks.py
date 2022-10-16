@@ -135,4 +135,16 @@ class EnemyTank(arcade.Sprite):
         # elif height_to_player < 0:
         #     self.angle = np.degrees(np.arctan(height_to_player / width_to_player)) + 90
             
-    
+class Explosion(arcade.Sprite):
+    def __init__(self, texture_list):
+        super().__init__()
+
+        self.current_texture = 0
+        self.textures = texture_list
+
+    def update(self):
+        self.current_texture += 1
+        if self.current_texture < len(self.textures):
+            self.set_texture(self.current_texture)
+        else:
+            self.remove_from_sprite_lists()
