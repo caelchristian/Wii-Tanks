@@ -104,7 +104,7 @@ class TankGame(arcade.Window):
             if len(hit_list) > 0:
 
                 # Make the explosion
-                explosion = Explosion(self.explosion_texture_list)
+                explosion = Tanks.Explosion(self.explosion_texture_list)
 
                 # Move it to location of the enemy tank
                 explosion.center_x = hit_list[0].center_x
