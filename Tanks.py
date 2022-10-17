@@ -1,3 +1,7 @@
+"""
+Tanks.py contains constants and classes used for the Tanks Game
+"""
+
 from enum import Enum
 import arcade
 import numpy as np
@@ -5,9 +9,15 @@ import numpy as np
 # Constants
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
+SCREEN_TITLE = "Tank Game"
+MOVEMENT_SPEED = 3
+BULLET_SPEED = 5
+EXPLOSION_TEXTURE_COUNT = 60
+
+
 class Color(Enum):
     """Enum for EnemyTank class.
-    Each color colalates to a different color tank.
+    Each color correlates to a different color tank.
     Depending on the color, different attributes will
     be loaded when constructing a EnemyTank.
 
@@ -25,51 +35,43 @@ class Color(Enum):
     BLACK: 9
 
 class Player(arcade.Sprite):
-    """ Player Class """
+    """
+    Player Tank Class. Inherits from arcade.Sprite to allow setting textures
+    """
 
     def update(self):
-        """ Move the player """
-        # Move player.
-        # Remove these lines if physics engine is moving player.
+        """
+        Updates the Player Tank sprite 
+        """
+        # Move player
         self.center_x += self.change_x
         self.center_y += self.change_y
 
-        # Check for out-of-bounds
-        if self.left < 0:
-            self.left = 0
-        elif self.right > SCREEN_WIDTH - 1:
-            self.right = SCREEN_WIDTH - 1
-
-        if self.bottom < 0:
-            self.bottom = 0
-        elif self.top > SCREEN_HEIGHT - 1:
-            self.top = SCREEN_HEIGHT - 1
 
 class Turret(arcade.Sprite):
-    """ Turret Class """
+    """ 
+    Player Turret (Gun) Class. Inherits from arcade.Sprite to allow setting textures
+    """
     def __init__(self, image_source, scale=1):
+        """Constructor for the Turret class
+
+        Args:
+            image_source (_type_): file path of the sprite image
+            scale (int, optional): scales the sprite. Defaults to 1.
+        """
         super().__init__(image_source, scale, hit_box_algorithm="None")
         self.target_x = 0
         self.target_y = 0
 
     def update(self):
-        """ Move the turret """
-        # Remove these lines if physics engine is moving player.
+        """ 
+        Updates the turret sprite 
+        """
+        # Move the turret
         self.center_x += self.change_x
         self.center_y += self.change_y
-
-        # Check for out-of-bounds
-        if self.left < 0:
-            self.left = 0
-        elif self.right > SCREEN_WIDTH - 1:
-            self.right = SCREEN_WIDTH - 1
-
-        if self.bottom < 0:
-            self.bottom = 0
-        elif self.top > SCREEN_HEIGHT - 1:
-            self.top = SCREEN_HEIGHT - 1
         
-        # Turret follows mouse
+        # Turret always points towards the mouse
         width = (self.target_x - self.center_x) 
         height = (self.target_y - self.center_y)
         if width > 0:
@@ -79,13 +81,16 @@ class Turret(arcade.Sprite):
             
             
 class EnemyTank(arcade.Sprite):
-    """ Parent Class of all color tanks
-
-    Args:
-        arcade.Sprite: Inherits from arcade.Sprite to allow setting textures
+    """ 
+    Parent class of all enemy tanks. Inherits from arcade.Sprite to allow setting textures
     """
     def __init__(self, image_source, scale=1):
-        # same as "arcade.Sprite.__init__(self)"
+        """Constructor for the EnemyTank class
+
+        Args:
+            image_source (_type_): file path of the sprite image
+            scale (int, optional): scales the sprite. Defaults to 1.
+        """
         super().__init__(image_source, scale, hit_box_algorithm="None")
         self.target_x = 0
         self.target_y = 0
@@ -136,13 +141,18 @@ class EnemyTank(arcade.Sprite):
         #     self.angle = np.degrees(np.arctan(height_to_player / width_to_player)) + 90
             
 class Explosion(arcade.Sprite):
+    """ 
+    Class for explosions. Inherits from arcade.Sprite to allow setting textures
+    """
     def __init__(self, texture_list):
         super().__init__()
 
+        # Start at the first frame
         self.current_texture = 0
         self.textures = texture_list
 
     def update(self):
+        # Update to the next frame
         self.current_texture += 1
         if self.current_texture < len(self.textures):
             self.set_texture(self.current_texture)
