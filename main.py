@@ -32,6 +32,7 @@ class TankGame(arcade.Window):
         self.player_list = None
         self.bullet_list = None
         self.enemy_list = None
+        self.physics_engine = None
 
         self.explosion_texture_list = []
 
@@ -52,6 +53,7 @@ class TankGame(arcade.Window):
         self.enemy_list = arcade.SpriteList()
         self.player_list = arcade.SpriteList()
         self.explosions_list = arcade.SpriteList()
+        self.obstacle_list = arcade.SpriteList()
 
         # Create the player tank and set its coordinates
         self.player_sprite = Tanks.Player("assets/tankBody_blue.png", 1)
@@ -73,6 +75,17 @@ class TankGame(arcade.Window):
         self.turret_sprite.center_x = 64
         self.turret_sprite.center_y = 128
         self.player_list.append(self.turret_sprite)
+
+        # Create the sprite for the blockade
+        image_source = "assets/crateWood.png"
+        self.obstacle_sprite = Tanks.Obstacle(image_source, 1, explodable=False)
+        self.obstacle_sprite.center_x = 200
+        self.obstacle_sprite.center_y = 200
+        self.obstacle_list.append(self.obstacle_sprite)
+
+        self.physics_engine = arcade.PhysicsEnginePlatformer(
+            self.player_sprite, gravity_constant=0, walls=self.obstacle_list
+        )
         
 
     def on_draw(self):
@@ -87,6 +100,7 @@ class TankGame(arcade.Window):
         self.enemy_list.draw()
         self.player_list.draw()
         self.explosions_list.draw()
+        self.obstacle_list.draw()
 
     def on_update(self, delta_time):
         """
@@ -94,7 +108,9 @@ class TankGame(arcade.Window):
         Partially from https://api.arcade.academy/en/2.6.0/examples/sprite_explosion_bitmapped.html
         """
         # Update the sprite lists
+        self.physics_engine.update()
         self.player_list.update()
+        self.turret_sprite.update_center(self.player_sprite.center_x, self.player_sprite.center_y)
         self.bullet_list.update()
         self.enemy_list.update()
 

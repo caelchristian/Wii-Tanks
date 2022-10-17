@@ -44,8 +44,8 @@ class Player(arcade.Sprite):
         Updates the Player Tank sprite 
         """
         # Move player
-        self.center_x += self.change_x
-        self.center_y += self.change_y
+        # self.center_x += self.change_x
+        # self.center_y += self.change_y
 
 
 class Turret(arcade.Sprite):
@@ -78,6 +78,10 @@ class Turret(arcade.Sprite):
             self.angle = np.degrees(np.arctan(height / width)) + 90
         elif width < 0:
             self.angle = np.degrees(np.arctan(height / width)) + 270
+    
+    def update_center(self, x, y):
+        self.center_x = x
+        self.center_y = y
             
             
 class EnemyTank(arcade.Sprite):
@@ -158,3 +162,18 @@ class Explosion(arcade.Sprite):
             self.set_texture(self.current_texture)
         else:
             self.remove_from_sprite_lists()
+
+class Obstacle(arcade.Sprite):
+    """ Class for the obstacle 
+    """
+
+    def __init__(self, image_source, scale=1, explodable=False):
+        """Constructor for the Obstacle class
+
+        Args:
+            image_source (str): file path of the sprite image
+            scale (int, optional): scales the sprite. Defaults to 1.
+        """
+        super().__init__(image_source, scale, hit_box_algorithm="Simple")
+        self.explodable = explodable
+
