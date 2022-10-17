@@ -144,12 +144,12 @@ class Explosion(arcade.Sprite):
     """ 
     Class for explosions. Inherits from arcade.Sprite to allow setting textures
     """
-    def __init__(self, texture_list):
+    def __init__(self, explosion_texture_list):
         super().__init__()
 
         # Start at the first frame
         self.current_texture = 0
-        self.textures = texture_list
+        self.textures = explosion_texture_list
 
     def update(self):
         # Update to the next frame
