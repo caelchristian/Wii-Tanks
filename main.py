@@ -41,8 +41,12 @@ class TankGame(arcade.Window):
         sprite_width = 130
         sprite_height = 130
         file_name = "assets/explosions_sheet.png"
-        
+
+        # Load the explosions from a sprite sheet
         self.explosion_texture_list = arcade.load_spritesheet(file_name, sprite_width, sprite_height, columns, count)
+
+        
+
 
     def setup(self):
         """ 
@@ -86,7 +90,6 @@ class TankGame(arcade.Window):
         self.physics_engine = arcade.PhysicsEnginePlatformer(
             self.player_sprite, gravity_constant=0, walls=self.obstacle_list
         )
-        
 
     def on_draw(self):
         """
@@ -113,6 +116,7 @@ class TankGame(arcade.Window):
         self.turret_sprite.update_center(self.player_sprite.center_x, self.player_sprite.center_y)
         self.bullet_list.update()
         self.enemy_list.update()
+        self.explosions_list.update()
 
         # If the bullet goes off the screen, remove it from the sprite lists
         for bullet in self.bullet_list:
@@ -127,10 +131,10 @@ class TankGame(arcade.Window):
                 explosion.center_x = hit_list[0].center_x
                 explosion.center_y = hit_list[0].center_y
 
-                explosion.update()
-
                 # Add to list of explosion sprites
                 self.explosions_list.append(explosion)
+
+                explosion.update()
 
                 # Hide the bullet
                 bullet.remove_from_sprite_lists()
