@@ -35,10 +35,10 @@ class TankGame(arcade.Window):
 
         self.explosion_texture_list = []
 
-        columns = 16
+        columns = 5
         count = 60
-        sprite_width = 256
-        sprite_height = 256
+        sprite_width = 130
+        sprite_height = 130
         file_name = "assets/explosion1.png"
 
         self.explosion_texture_list = arcade.load_spritesheet(file_name, sprite_width, sprite_height, columns, count)
