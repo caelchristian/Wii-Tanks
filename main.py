@@ -36,11 +36,11 @@ class TankGame(arcade.Window):
         self.explosion_texture_list = []
 
         columns = 5
-        count = 60
+        count = 5
         sprite_width = 130
         sprite_height = 130
-        file_name = "assets/explosion1.png"
-
+        file_name = "assets/explosions_sheet.png"
+        
         self.explosion_texture_list = arcade.load_spritesheet(file_name, sprite_width, sprite_height, columns, count)
 
     def setup(self):
@@ -91,13 +91,14 @@ class TankGame(arcade.Window):
     def on_update(self, delta_time):
         """
         Updates all sprite lists and removes unnecessary sprites
+        Partially from https://api.arcade.academy/en/2.6.0/examples/sprite_explosion_bitmapped.html
         """
         # Update the sprite lists
         self.player_list.update()
         self.bullet_list.update()
         self.enemy_list.update()
 
-        # If the bullet goes of the screen, remove it from the sprite lists
+        # If the bullet goes off the screen, remove it from the sprite lists
         for bullet in self.bullet_list:
             hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
 
@@ -117,7 +118,6 @@ class TankGame(arcade.Window):
 
                 # Hide the bullet
                 bullet.remove_from_sprite_lists()
-
 
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.remove_from_sprite_lists()
