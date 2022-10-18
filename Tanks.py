@@ -15,6 +15,7 @@ BULLET_SPEED = 5
 EXPLOSION_TEXTURE_COUNT = 60
 
 
+
 class Color(Enum):
     """Enum for EnemyTank class.
     Each color correlates to a different color tank.
@@ -148,15 +149,17 @@ class Explosion(arcade.Sprite):
     """ 
     Class for explosions. Inherits from arcade.Sprite to allow setting textures
     """
-    def __init__(self, explosion_texture_list):
+    def __init__(self, texture_list):
         super().__init__()
 
         # Start at the first frame
         self.current_texture = 0
-        self.textures = explosion_texture_list
+        self.textures = texture_list
 
     def update(self):
-        # Update to the next frame
+
+        # Update to the next frame of the animation. If we are at the end
+        # of our frames, then delete this sprite.
         self.current_texture += 1
         if self.current_texture < len(self.textures):
             self.set_texture(self.current_texture)
