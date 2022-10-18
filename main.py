@@ -60,25 +60,20 @@ class TankGame(arcade.Window):
         self.obstacle_list = arcade.SpriteList()
 
         # Create the player tank and set its coordinates
-        self.player_sprite = Tanks.Player("assets/tankBody_blue.png", 1)
+        self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue.png", "assets/tankBlue_barrel_rotate.png", 1)
         self.player_sprite.center_x = 64
         self.player_sprite.center_y = 128
         self.player_sprite.angle = 180
         self.player_list.append(self.player_sprite)
+        self.player_list.append(self.player_sprite.turret)
         
         # Create the enemy tank and set its coordinates
-        self.enemy_sprite = Tanks.EnemyTank("assets/tank_red.png")
+        self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlue_barrel_rotate.png", 1)
         self.enemy_sprite.center_x = Tanks.SCREEN_WIDTH - 64
         self.enemy_sprite.center_y = Tanks.SCREEN_HEIGHT - 128
         self.enemy_sprite.angle = 180
         self.enemy_list.append(self.enemy_sprite)
-
-        # Create the sprite for the player tanks turret (gun)
-        image_source = "assets/tankBlue_barrel_rotate.png"
-        self.turret_sprite = Tanks.Turret(image_source, 1)
-        self.turret_sprite.center_x = 64
-        self.turret_sprite.center_y = 128
-        self.player_list.append(self.turret_sprite)
+        self.enemy_list.append(self.enemy_sprite.turret)
 
         # Create the sprite for the blockade
         image_source = "assets/crateWood.png"
@@ -113,10 +108,11 @@ class TankGame(arcade.Window):
         # Update the sprite lists
         self.physics_engine.update()
         self.player_list.update()
-        self.turret_sprite.update_center(self.player_sprite.center_x, self.player_sprite.center_y)
         self.bullet_list.update()
         self.enemy_list.update()
         self.explosions_list.update()
+        self.enemy_sprite.player_x = self.player_sprite.center_x
+        self.enemy_sprite.player_y = self.player_sprite.center_y
 
         # If the bullet goes off the screen, remove it from the sprite lists
         for bullet in self.bullet_list:
@@ -153,28 +149,24 @@ class TankGame(arcade.Window):
         if key == arcade.key.UP:
             # Move the tank to the up
             self.player_sprite.change_y = Tanks.MOVEMENT_SPEED
-            self.turret_sprite.change_y = Tanks.MOVEMENT_SPEED
             # Face the tank sprite upward
             self.player_sprite.angle = 180
 
         elif key == arcade.key.DOWN:
             # Move the tank to the down
             self.player_sprite.change_y = -Tanks.MOVEMENT_SPEED
-            self.turret_sprite.change_y = -Tanks.MOVEMENT_SPEED
             # Face the tank sprite downward
             self.player_sprite.angle = 0
 
         elif key == arcade.key.LEFT:
             # Move the tank to the left
             self.player_sprite.change_x = -Tanks.MOVEMENT_SPEED
-            self.turret_sprite.change_x = -Tanks.MOVEMENT_SPEED
             # Face the tank sprite to the left
             self.player_sprite.angle = 270
 
         elif key == arcade.key.RIGHT:
             # Move the tank to the right
             self.player_sprite.change_x = Tanks.MOVEMENT_SPEED
-            self.turret_sprite.change_x = Tanks.MOVEMENT_SPEED
             # Face the tank sprite to the right
             self.player_sprite.angle = 90
 
@@ -186,10 +178,8 @@ class TankGame(arcade.Window):
         # If a player releases a key, stop moving the player and turret
         if key == arcade.key.UP or key == arcade.key.DOWN:
             self.player_sprite.change_y = 0
-            self.turret_sprite.change_y = 0
         elif key == arcade.key.LEFT or key == arcade.key.RIGHT:
             self.player_sprite.change_x = 0
-            self.turret_sprite.change_x = 0
 
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
@@ -197,8 +187,8 @@ class TankGame(arcade.Window):
         Called whenever the mouse moves.
         """
         # Set the target of the player's turret to the mouse location
-        self.turret_sprite.target_x = x
-        self.turret_sprite.target_y = y
+        self.player_sprite.target_x = x
+        self.player_sprite.target_y = y
 
 
     def on_mouse_press(self, x, y, button, key_modifiers):
