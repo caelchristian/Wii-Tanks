@@ -221,6 +221,13 @@ class TankGame(arcade.Window):
         angle = math.atan2(y_diff, x_diff)
 
         bullet.angle = math.degrees(angle) - 90
+                
+        # Offset bullet outside of tank
+        offset_x = math.cos(angle) * 50
+        offset_y = math.sin(angle) * 50
+        
+        bullet.center_x += offset_x
+        bullet.center_y += offset_y
 
         # Velocity
         bullet.change_x = math.cos(angle) * Tanks.BULLET_SPEED
