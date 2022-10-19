@@ -58,6 +58,7 @@ class TankGame(arcade.Window):
         self.player_list = arcade.SpriteList()
         self.explosions_list = arcade.SpriteList()
         self.obstacle_list = arcade.SpriteList()
+        self.exploded_tank_list = arcade.SpriteList()
 
         # Create the player tank and set its coordinates
         self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue.png", "assets/tankBlue_barrel_rotate.png", 1)
@@ -68,12 +69,13 @@ class TankGame(arcade.Window):
         self.player_list.append(self.player_sprite.turret)
         
         # Create the enemy tank and set its coordinates
-        self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlue_barrel_rotate.png", 1)
+        self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", 1)
         self.enemy_sprite.center_x = Tanks.SCREEN_WIDTH - 64
         self.enemy_sprite.center_y = Tanks.SCREEN_HEIGHT - 128
         self.enemy_sprite.angle = 180
         self.enemy_list.append(self.enemy_sprite)
         self.enemy_list.append(self.enemy_sprite.turret)
+
 
         # Create the sprite for the blockade
         image_source = "assets/crateWood.png"
@@ -131,6 +133,11 @@ class TankGame(arcade.Window):
                 self.explosions_list.append(explosion)
 
                 explosion.update()
+
+                # Take off the turret and enemy tank, then add the exploded sprite
+                self.enemy_sprite.remove_from_sprite_lists()
+                self.enemy_sprite.turret.remove_from_sprite_lists()
+                self.enemy_list.append(self.enemy_sprite.exploded)
 
                 # Hide the bullet
                 bullet.remove_from_sprite_lists()
