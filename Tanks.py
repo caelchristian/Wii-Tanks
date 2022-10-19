@@ -7,8 +7,8 @@ import arcade
 import numpy as np
 
 # Constants
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1120
+SCREEN_HEIGHT = 840
 SCREEN_TITLE = "Tank Game"
 MOVEMENT_SPEED = 3
 BULLET_SPEED = 5
