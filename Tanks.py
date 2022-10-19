@@ -14,8 +14,6 @@ MOVEMENT_SPEED = 3
 BULLET_SPEED = 5
 EXPLOSION_TEXTURE_COUNT = 60
 
-
-
 class Color(Enum):
     """Enum for EnemyTank class.
     Each color correlates to a different color tank.
@@ -35,70 +33,44 @@ class Color(Enum):
     WHITE: 8
     BLACK: 9
 
-class Player(arcade.Sprite):
+class PlayerTank(arcade.Sprite):
     """
     Player Tank Class. Inherits from arcade.Sprite to allow setting textures
     """
+    def __init__(self, tank_image, turret_image, scale=1):
+        super().__init__(tank_image, scale, hit_box_algorithm="Simple")
+        self.turret = arcade.Sprite(turret_image, scale)
+        self.target_x = 0
+        self.target_y = 0
+
 
     def update(self):
         """
         Updates the Player Tank sprite 
         """
-        # Move player
-        # self.center_x += self.change_x
-        # self.center_y += self.change_y
-
-
-class Turret(arcade.Sprite):
-    """ 
-    Player Turret (Gun) Class. Inherits from arcade.Sprite to allow setting textures
-    """
-    def __init__(self, image_source, scale=1):
-        """Constructor for the Turret class
-
-        Args:
-            image_source (_type_): file path of the sprite image
-            scale (int, optional): scales the sprite. Defaults to 1.
-        """
-        super().__init__(image_source, scale, hit_box_algorithm="None")
-        self.target_x = 0
-        self.target_y = 0
-
-    def update(self):
-        """ 
-        Updates the turret sprite 
-        """
-        # Move the turret
-        self.center_x += self.change_x
-        self.center_y += self.change_y
         
+        # Turret always stays with the tank
+        self.turret.center_x = self.center_x
+        self.turret.center_y = self.center_y
+
         # Turret always points towards the mouse
         width = (self.target_x - self.center_x) 
         height = (self.target_y - self.center_y)
         if width > 0:
-            self.angle = np.degrees(np.arctan(height / width)) + 90
+            self.turret.angle = np.degrees(np.arctan(height / width)) + 90
         elif width < 0:
-            self.angle = np.degrees(np.arctan(height / width)) + 270
-    
-    def update_center(self, x, y):
-        self.center_x = x
-        self.center_y = y
-            
+            self.turret.angle = np.degrees(np.arctan(height / width)) + 270
             
 class EnemyTank(arcade.Sprite):
     """ 
     Parent class of all enemy tanks. Inherits from arcade.Sprite to allow setting textures
     """
-    def __init__(self, image_source, scale=1):
-        """Constructor for the EnemyTank class
-
-        Args:
-            image_source (_type_): file path of the sprite image
-            scale (int, optional): scales the sprite. Defaults to 1.
-        """
-        super().__init__(image_source, scale, hit_box_algorithm="None")
-        self.target_x = 0
-        self.target_y = 0
+    
+    def __init__(self, tank_image, turret_image, scale=1):
+        super().__init__(tank_image, scale, hit_box_algorithm="Simple")
+        self.turret = arcade.Sprite(turret_image, scale)
+        self.player_x = 0
+        self.player_y = 0
 
     
     def update(self):
@@ -117,33 +89,19 @@ class EnemyTank(arcade.Sprite):
             Max Mines: 2-4
             Ricochets: 0-2
         """
-        # Remove these lines if physics engine is moving player.
-        self.center_x += self.change_x
-        self.center_y += self.change_y
+        
+        # Turret always stays with the tank
+        self.turret.center_x = self.center_x
+        self.turret.center_y = self.center_y
 
-        # Check for out-of-bounds
-        if self.left < 0:
-            self.left = 0
-        elif self.right > SCREEN_WIDTH - 1:
-            self.right = SCREEN_WIDTH - 1
-
-        if self.bottom < 0:
-            self.bottom = 0
-        elif self.top > SCREEN_HEIGHT - 1:
-            self.top = SCREEN_HEIGHT - 1
-        
-        
-        # IN-PROGRESS
-        # Turret follows player
-        # Will look very similar to turret follows mouse logic, 
-        # mouse position will be replaced with player position.
-        
-        # width_to_player = (self.player_sprite - self.center_x) 
-        # height_to_player = (self.target_y - self.center_y)
-        # if width_to_player > 0:
-        #     self.angle = np.degrees(np.arctan(height_to_player / width_to_player)) + 270
-        # elif height_to_player < 0:
-        #     self.angle = np.degrees(np.arctan(height_to_player / width_to_player)) + 90
+        # Turret always points towards the mouse
+        width = (self.player_x - self.center_x) 
+        height = (self.player_y - self.center_y)
+        if width > 0:
+            self.turret.angle = np.degrees(np.arctan(height / width)) + 90
+        elif width < 0:
+            self.turret.angle = np.degrees(np.arctan(height / width)) + 270
+            
             
 class Explosion(arcade.Sprite):
     """ 
@@ -155,6 +113,7 @@ class Explosion(arcade.Sprite):
         # Start at the first frame
         self.current_texture = 0
         self.textures = texture_list
+
 
     def update(self):
 
@@ -169,6 +128,7 @@ class Explosion(arcade.Sprite):
 class Obstacle(arcade.Sprite):
     """ Class for the obstacle 
     """
+
 
     def __init__(self, image_source, scale=1, explodable=False):
         """Constructor for the Obstacle class
