@@ -108,6 +108,7 @@ class EnemyTank(arcade.Sprite):
             self.turret.angle = np.degrees(np.arctan(height / width)) + 90
         elif width < 0:
             self.turret.angle = np.degrees(np.arctan(height / width)) + 270
+
             
 class Explosion(arcade.Sprite):
     """ 

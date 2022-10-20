@@ -4,6 +4,7 @@ Tanks Game (modeled after Wii Play Tanks)
 Authored by: Cael Christian, Levi Putman, Olivia Wilson
 """
 
+from xml.etree.ElementInclude import include
 import arcade
 import Tanks
 import math
@@ -141,6 +142,7 @@ class TankGame(arcade.Window):
 
                 # Hide the bullet
                 bullet.remove_from_sprite_lists()
+
 
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.remove_from_sprite_lists()
