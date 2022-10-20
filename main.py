@@ -34,6 +34,7 @@ class TankGame(arcade.Window):
         self.bullet_list = None
         self.enemy_list = None
         self.physics_engine = None
+        self.obstacle_list = None
 
         self.explosion_texture_list = []
 
@@ -47,7 +48,6 @@ class TankGame(arcade.Window):
         self.explosion_texture_list = arcade.load_spritesheet(file_name, sprite_width, sprite_height, columns, count)
 
         
-
 
     def setup(self):
         """ 
@@ -76,18 +76,17 @@ class TankGame(arcade.Window):
         self.enemy_sprite.angle = 180
         self.enemy_list.append(self.enemy_sprite)
         self.enemy_list.append(self.enemy_sprite.turret)
+        
+        # Load level and obstacles (not sure if layer options are required here but used in documentation)
+        tile_map = arcade.load_tilemap("maps/level.tmx", layer_options={"Obstacles": {"use_spatial_hash": True}})
 
-
-        # Create the sprite for the blockade
-        image_source = "assets/crateWood.png"
-        self.obstacle_sprite = Tanks.Obstacle(image_source, 1, explodable=False)
-        self.obstacle_sprite.center_x = 200
-        self.obstacle_sprite.center_y = 200
-        self.obstacle_list.append(self.obstacle_sprite)
-
-        self.physics_engine = arcade.PhysicsEnginePlatformer(
-            self.player_sprite, gravity_constant=0, walls=self.obstacle_list
-        )
+        # Loads the tilemap layer "Obstacles" into a sprite list
+        self.obstacle_list = tile_map.sprite_lists["Obstacles"]
+        
+        # Collision Physics Engine blocks player from clipping through tiles
+        self.obstacle_collision_engine = arcade.PhysicsEnginePlatformer(
+            self.player_sprite, gravity_constant=0, walls=self.obstacle_list)
+        
 
     def on_draw(self):
         """
@@ -109,7 +108,8 @@ class TankGame(arcade.Window):
         Partially from https://api.arcade.academy/en/2.6.0/examples/sprite_explosion_bitmapped.html
         """
         # Update the sprite lists
-        self.physics_engine.update()
+        # self.physics_engine.update()
+        self.obstacle_collision_engine.update()
         self.player_list.update()
         self.bullet_list.update()
         self.enemy_list.update()
