@@ -71,7 +71,7 @@ class TankGame(arcade.Window):
         
         # Create the enemy tank and set its coordinates
         self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", 1)
-        self.enemy_sprite.center_x = Tanks.SCREEN_WIDTH - 64
+        self.enemy_sprite.center_x = Tanks.SCREEN_WIDTH - 115
         self.enemy_sprite.center_y = Tanks.SCREEN_HEIGHT - 128
         self.enemy_sprite.angle = 180
         self.enemy_list.append(self.enemy_sprite)
