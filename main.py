@@ -35,6 +35,7 @@ class TankGame(arcade.Window):
         self.enemy_list = None
         self.physics_engine = None
         self.obstacle_list = None
+        self.exploded_tank_list = None
 
         self.explosion_texture_list = []
 
@@ -96,11 +97,12 @@ class TankGame(arcade.Window):
         arcade.start_render()
 
         # Draw all sprite lists
-        self.bullet_list.draw()
         self.enemy_list.draw()
         self.player_list.draw()
         self.explosions_list.draw()
         self.obstacle_list.draw()
+        self.exploded_tank_list.draw()
+        self.bullet_list.draw()
 
     def on_update(self, delta_time):
         """
@@ -114,6 +116,8 @@ class TankGame(arcade.Window):
         self.bullet_list.update()
         self.enemy_list.update()
         self.explosions_list.update()
+        self.exploded_tank_list.update()
+
         self.enemy_sprite.player_x = self.player_sprite.center_x
         self.enemy_sprite.player_y = self.player_sprite.center_y
 
@@ -138,7 +142,7 @@ class TankGame(arcade.Window):
                 # Take off the turret and enemy tank, then add the exploded sprite
                 self.enemy_sprite.remove_from_sprite_lists()
                 self.enemy_sprite.turret.remove_from_sprite_lists()
-                self.enemy_list.append(self.enemy_sprite.exploded)
+                self.exploded_tank_list.append(self.enemy_sprite.exploded)
 
                 # Hide the bullet
                 bullet.remove_from_sprite_lists()

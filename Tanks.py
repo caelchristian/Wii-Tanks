@@ -74,6 +74,7 @@ class EnemyTank(arcade.Sprite):
         self.exploded = arcade.Sprite(exploded_tank_image, scale)
         self.player_x = 0
         self.player_y = 0
+        
 
     
     def update(self):
