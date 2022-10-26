@@ -102,6 +102,7 @@ class TankGame(arcade.Window):
         self.physics_engine.add_sprite_list(self.obstacle_list,
                                             friction = 0,
                                             collision_type="wall",
+                                            elasticity = 1.0,
                                             body_type=arcade.PymunkPhysicsEngine.STATIC)
 
     def on_draw(self):
@@ -136,27 +137,23 @@ class TankGame(arcade.Window):
             # Move the tank to the up
             self.physics_engine.apply_force(self.player_sprite, (0, -PLAYER_MOVE_FORCE_ON_GROUND))
             # Face the tank sprite upward
-            self.physics_engine.set_friction(self.player_sprite, 0)
-
-        if self.down_pressed:
+            self.physics_engine.set_friction(self.player_sprite, 0.9)
+        elif self.down_pressed:
             # Move the tank to the down
             self.physics_engine.apply_force(self.player_sprite, (0, PLAYER_MOVE_FORCE_ON_GROUND))
             # Face the tank sprite downward
-            self.physics_engine.set_friction(self.player_sprite, 0)
-
-        if self.left_pressed:
+            self.physics_engine.set_friction(self.player_sprite, 0.9)
+        elif self.left_pressed:
             # Move the tank to the left
             self.physics_engine.apply_force(self.player_sprite, (PLAYER_MOVE_FORCE_ON_GROUND, 0))
             # Face the tank sprite to the left
-            self.physics_engine.set_friction(self.player_sprite, 0)
-
-        if self.right_pressed:
+            self.physics_engine.set_friction(self.player_sprite, 0.9)
+        elif self.right_pressed:
             # Move the tank to the right
             self.physics_engine.apply_force(self.player_sprite, (-PLAYER_MOVE_FORCE_ON_GROUND, 0))
             # Face the tank sprite to the right
-            self.physics_engine.set_friction(self.player_sprite, 0)
-
-        if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
+            self.physics_engine.set_friction(self.player_sprite, 0.9)
+        else:
             self.physics_engine.set_friction(self.player_sprite, 1.0)
 
         # If the bullet goes off the screen, remove it from the sprite lists
