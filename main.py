@@ -85,12 +85,11 @@ class TankGame(arcade.Window):
         self.enemy_list.append(self.enemy_sprite)
         self.enemy_list.append(self.enemy_sprite.turret)
 
-        # Create the sprite for the blockade
-        image_source = "assets/crateWood.png"
-        self.obstacle_sprite = Tanks.Obstacle(image_source, 1, explodable=False)
-        self.obstacle_sprite.center_x = 200
-        self.obstacle_sprite.center_y = 200
-        self.obstacle_list.append(self.obstacle_sprite)
+        # Load level and obstacles (not sure if layer options are required here but used in documentation)
+        tile_map = arcade.load_tilemap("maps/level.tmx", layer_options={"Obstacles": {"use_spatial_hash": True}})
+
+        # Loads the tilemap layer "Obstacles" into a sprite list
+        self.obstacle_list = tile_map.sprite_lists["Obstacles"]
 
         self.physics_engine = arcade.PymunkPhysicsEngine(damping=1.0,
                                                          gravity=(0,0))
