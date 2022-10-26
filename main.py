@@ -4,12 +4,9 @@ Tanks Game (modeled after Wii Play Tanks)
 Authored by: Cael Christian, Levi Putman, Olivia Wilson
 """
 
-from xml.etree.ElementInclude import include
 import arcade
 import Tanks
 import math
-
-PLAYER_MOVE_FORCE_ON_GROUND = 100
 
 class TankGame(arcade.Window):
     """
@@ -91,7 +88,7 @@ class TankGame(arcade.Window):
         # Loads the tilemap layer "Obstacles" into a sprite list
         self.obstacle_list = tile_map.sprite_lists["Obstacles"]
 
-        self.physics_engine = arcade.PymunkPhysicsEngine(damping=1.0,
+        self.physics_engine = arcade.PymunkPhysicsEngine(damping=0.0001,
                                                          gravity=(0,0))
 
         self.physics_engine.add_sprite(self.player_sprite,
@@ -140,25 +137,26 @@ class TankGame(arcade.Window):
 
         if self.up_pressed:
             # Move the tank to the up
-            self.physics_engine.apply_force(self.player_sprite, (0, -PLAYER_MOVE_FORCE_ON_GROUND))
+            self.physics_engine.apply_force(self.player_sprite, (0, -Tanks.PLAYER_MOVE_FORCE))
             # Face the tank sprite upward
-            self.physics_engine.set_friction(self.player_sprite, 0.9)
-        elif self.down_pressed:
+            self.physics_engine.set_friction(self.player_sprite, 0)
+        if self.down_pressed:
             # Move the tank to the down
-            self.physics_engine.apply_force(self.player_sprite, (0, PLAYER_MOVE_FORCE_ON_GROUND))
+            self.physics_engine.apply_force(self.player_sprite, (0, Tanks.PLAYER_MOVE_FORCE))
             # Face the tank sprite downward
-            self.physics_engine.set_friction(self.player_sprite, 0.9)
-        elif self.left_pressed:
+            self.physics_engine.set_friction(self.player_sprite, 0)
+        if self.left_pressed:
             # Move the tank to the left
-            self.physics_engine.apply_force(self.player_sprite, (PLAYER_MOVE_FORCE_ON_GROUND, 0))
+            self.physics_engine.apply_force(self.player_sprite, (Tanks.PLAYER_MOVE_FORCE, 0))
             # Face the tank sprite to the left
-            self.physics_engine.set_friction(self.player_sprite, 0.9)
-        elif self.right_pressed:
+            self.physics_engine.set_friction(self.player_sprite, 0)
+        if self.right_pressed:
             # Move the tank to the right
-            self.physics_engine.apply_force(self.player_sprite, (-PLAYER_MOVE_FORCE_ON_GROUND, 0))
+            self.physics_engine.apply_force(self.player_sprite, (-Tanks.PLAYER_MOVE_FORCE, 0))
             # Face the tank sprite to the right
-            self.physics_engine.set_friction(self.player_sprite, 0.9)
-        else:
+            self.physics_engine.set_friction(self.player_sprite, 0)
+
+        if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
             self.physics_engine.set_friction(self.player_sprite, 1.0)
 
         # If the bullet goes off the screen, remove it from the sprite lists
@@ -190,6 +188,14 @@ class TankGame(arcade.Window):
 
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.remove_from_sprite_lists()
+
+        # Remove bullets if they collide with eachother
+        bs = []
+        for bullet in self.bullet_list:
+            hit_list = arcade.check_for_collision_with_list(bullet, self.bullet_list)
+            for b in hit_list:
+                b.remove_from_sprite_lists()
+                bullet.remove_from_sprite_lists()
     
 
     def on_key_press(self, key, key_modifiers):
@@ -201,19 +207,12 @@ class TankGame(arcade.Window):
         # If the player presses an arrow key, move the tank
         if key == arcade.key.UP:
             self.up_pressed = True
-            self.player_sprite.angle = 180
-
         elif key == arcade.key.DOWN:
             self.down_pressed = True
-            self.player_sprite.angle = 0
-
         elif key == arcade.key.LEFT:
             self.left_pressed = True
-            self.player_sprite.angle = 270
-
         elif key == arcade.key.RIGHT:
             self.right_pressed = True
-            self.player_sprite.angle = 90
 
 
     def on_key_release(self, key, key_modifiers):
@@ -265,20 +264,20 @@ class TankGame(arcade.Window):
         bullet.center_x = start_x + math.cos(angle) * 50
         bullet.center_y = start_y + math.sin(angle) * 50
 
-        # Velocity
-        # bullet.change_x = math.cos(angle) * Tanks.BULLET_SPEED
-        # bullet.change_y = math.sin(angle) * Tanks.BULLET_SPEED
-        self.physics_engine.add_sprite(bullet,
-                                            friction=0.1,
-                                            mass = 0.5,
-                                            collision_type = "bullet",
-                                            moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
-                                            elasticity = 1.0)
-        print(8000*math.cos(angle), 8000*math.sin(angle))
-        force = (8000*math.cos(angle), 8000*math.sin(angle))
-        self.physics_engine.apply_force(bullet, (0, 8000))
-        # Add the bullet to the sprite list to be drawn
-        self.bullet_list.append(bullet)
+        # If the turret is in a obstacle, don't shoot a bullet
+        hit_list = arcade.check_for_collision_with_list(self.player_sprite.turret, self.obstacle_list)
+        if len(hit_list) == 0:
+            # Shoot a bullet towards the mouse
+            self.physics_engine.add_sprite(bullet,
+                                                friction=0.1,
+                                                mass = 0.5,
+                                                damping = 1,
+                                                collision_type = "bullet",
+                                                moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+                                                elasticity = 1.0)
+            self.physics_engine.apply_force(bullet, (0, 8000))
+            # Add the bullet to the sprite list to be drawn
+            self.bullet_list.append(bullet)
 
 
     def on_mouse_release(self, x, y, button, key_modifiers):

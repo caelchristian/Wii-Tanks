@@ -6,8 +6,6 @@ from enum import Enum
 import arcade
 import numpy as np
 
-from main import TankGame
-
 # Constants
 SCREEN_WIDTH = 1120
 SCREEN_HEIGHT = 840
@@ -15,6 +13,7 @@ SCREEN_TITLE = "Tank Game"
 MOVEMENT_SPEED = 3
 BULLET_SPEED = 5
 EXPLOSION_TEXTURE_COUNT = 60
+PLAYER_MOVE_FORCE = 500
 
 class Color(Enum):
     """Enum for EnemyTank class.
@@ -102,7 +101,7 @@ class EnemyTank(arcade.Sprite):
         self.exploded.center_x = self.center_x
         self.exploded.center_y = self.center_y
 
-        # Turret always points towards the mouse
+        # Turret always points towards the player
         width = (self.player_x - self.center_x) 
         height = (self.player_y - self.center_y)
         if width > 0:
@@ -134,12 +133,9 @@ class Explosion(arcade.Sprite):
             self.remove_from_sprite_lists()
 
 
-
 class Obstacle(arcade.Sprite):
     """ Class for the obstacle 
     """
-
-
     def __init__(self, image_source, scale=1, explodable=False):
         """Constructor for the Obstacle class
 
