@@ -4,6 +4,7 @@ Tanks Game (modeled after Wii Play Tanks)
 Authored by: Cael Christian, Levi Putman, Olivia Wilson
 """
 
+from xml.etree.ElementInclude import include
 import arcade
 import Tanks
 import math
@@ -35,6 +36,8 @@ class TankGame(arcade.Window):
         self.bullet_list = None
         self.enemy_list = None
         self.physics_engine = None
+        self.obstacle_list = None
+        self.exploded_tank_list = None
 
         self.explosion_texture_list = []
 
@@ -54,7 +57,6 @@ class TankGame(arcade.Window):
 
         
 
-
     def setup(self):
         """ 
         Setup the sprite lists and place the sprites on the screen
@@ -65,6 +67,7 @@ class TankGame(arcade.Window):
         self.player_list = arcade.SpriteList()
         self.explosions_list = arcade.SpriteList()
         self.obstacle_list = arcade.SpriteList()
+        self.exploded_tank_list = arcade.SpriteList()
 
         # Create the player tank and set its coordinates
         self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue_scaled.png", "assets/tankBlue_barrel_rotate.png", 1)
@@ -75,8 +78,8 @@ class TankGame(arcade.Window):
         self.player_list.append(self.player_sprite.turret)
         
         # Create the enemy tank and set its coordinates
-        self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlue_barrel_rotate.png", 1)
-        self.enemy_sprite.center_x = Tanks.SCREEN_WIDTH - 64
+        self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", 1)
+        self.enemy_sprite.center_x = Tanks.SCREEN_WIDTH - 115
         self.enemy_sprite.center_y = Tanks.SCREEN_HEIGHT - 128
         self.enemy_sprite.angle = 180
         self.enemy_list.append(self.enemy_sprite)
@@ -113,11 +116,12 @@ class TankGame(arcade.Window):
         arcade.start_render()
 
         # Draw all sprite lists
-        self.bullet_list.draw()
         self.enemy_list.draw()
         self.player_list.draw()
         self.explosions_list.draw()
         self.obstacle_list.draw()
+        self.exploded_tank_list.draw()
+        self.bullet_list.draw()
 
     def on_update(self, delta_time):
         """
@@ -130,6 +134,8 @@ class TankGame(arcade.Window):
         self.bullet_list.update()
         self.enemy_list.update()
         self.explosions_list.update()
+        self.exploded_tank_list.update()
+
         self.enemy_sprite.player_x = self.player_sprite.center_x
         self.enemy_sprite.player_y = self.player_sprite.center_y
 
@@ -174,8 +180,14 @@ class TankGame(arcade.Window):
 
                 explosion.update()
 
+                # Take off the turret and enemy tank, then add the exploded sprite
+                self.enemy_sprite.remove_from_sprite_lists()
+                self.enemy_sprite.turret.remove_from_sprite_lists()
+                self.exploded_tank_list.append(self.enemy_sprite.exploded)
+
                 # Hide the bullet
                 bullet.remove_from_sprite_lists()
+
 
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.remove_from_sprite_lists()

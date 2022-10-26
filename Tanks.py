@@ -6,9 +6,11 @@ from enum import Enum
 import arcade
 import numpy as np
 
+from main import TankGame
+
 # Constants
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1120
+SCREEN_HEIGHT = 840
 SCREEN_TITLE = "Tank Game"
 MOVEMENT_SPEED = 3
 BULLET_SPEED = 5
@@ -66,11 +68,13 @@ class EnemyTank(arcade.Sprite):
     Parent class of all enemy tanks. Inherits from arcade.Sprite to allow setting textures
     """
     
-    def __init__(self, tank_image, turret_image, scale=1):
+    def __init__(self, tank_image, turret_image, exploded_tank_image, scale=1):
         super().__init__(tank_image, scale, hit_box_algorithm="Simple")
         self.turret = arcade.Sprite(turret_image, scale)
+        self.exploded = arcade.Sprite(exploded_tank_image, scale)
         self.player_x = 0
         self.player_y = 0
+        
 
     
     def update(self):
@@ -94,6 +98,10 @@ class EnemyTank(arcade.Sprite):
         self.turret.center_x = self.center_x
         self.turret.center_y = self.center_y
 
+        # Invisible exploded sprite always stays with the tank
+        self.exploded.center_x = self.center_x
+        self.exploded.center_y = self.center_y
+
         # Turret always points towards the mouse
         width = (self.player_x - self.center_x) 
         height = (self.player_y - self.center_y)
@@ -101,7 +109,7 @@ class EnemyTank(arcade.Sprite):
             self.turret.angle = np.degrees(np.arctan(height / width)) + 90
         elif width < 0:
             self.turret.angle = np.degrees(np.arctan(height / width)) + 270
-            
+
             
 class Explosion(arcade.Sprite):
     """ 
@@ -124,6 +132,8 @@ class Explosion(arcade.Sprite):
             self.set_texture(self.current_texture)
         else:
             self.remove_from_sprite_lists()
+
+
 
 class Obstacle(arcade.Sprite):
     """ Class for the obstacle 
