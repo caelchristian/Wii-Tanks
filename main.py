@@ -68,7 +68,7 @@ class TankGame(arcade.Window):
 
         # Create the player tank and set its coordinates
         self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue.png", "assets/tankBlue_barrel_rotate.png", 1)
-        self.player_sprite.center_x = 64
+        self.player_sprite.center_x = 120
         self.player_sprite.center_y = 128
         self.player_sprite.angle = 180
         self.player_list.append(self.player_sprite)
@@ -268,8 +268,8 @@ class TankGame(arcade.Window):
 
         bullet.angle = math.degrees(angle) - 90
 
-        bullet.center_x = start_x + math.cos(angle) * 50
-        bullet.center_y = start_y + math.sin(angle) * 50
+        bullet.center_x = start_x + math.cos(angle) * 60
+        bullet.center_y = start_y + math.sin(angle) * 60
 
         # If the turret is in a obstacle, don't shoot a bullet
         hit_list = arcade.check_for_collision_with_list(self.player_sprite.turret, self.obstacle_list)
