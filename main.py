@@ -67,7 +67,7 @@ class TankGame(arcade.Window):
         self.exploded_tank_list = arcade.SpriteList()
 
         # Create the player tank and set its coordinates
-        self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue_scaled.png", "assets/tankBlue_barrel_rotate.png", 1)
+        self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue.png", "assets/tankBlue_barrel_rotate.png", 1)
         self.player_sprite.center_x = 64
         self.player_sprite.center_y = 128
         self.player_sprite.angle = 180
@@ -189,6 +189,13 @@ class TankGame(arcade.Window):
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.remove_from_sprite_lists()
 
+        # Check when bullets collide with walls
+        for bullet in self.bullet_list:
+            hit_list = arcade.check_for_collision_with_list(bullet, self.obstacle_list)
+            if len(hit_list) > 0:
+                bullet.num_ricochets += 1
+
+
         # Remove bullets if they collide with eachother
         bs = []
         for bullet in self.bullet_list:
@@ -244,7 +251,7 @@ class TankGame(arcade.Window):
         Called when the user presses a mouse button.
         """
         # Make bullet
-        bullet = arcade.Sprite("assets/bulletDark1_outline.png", 1)
+        bullet = Tanks.Bullet("assets/bulletDark1_outline.png", 1)
 
         # Position bullet at player's location
         start_x = self.player_sprite.center_x

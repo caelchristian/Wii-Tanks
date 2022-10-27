@@ -13,7 +13,8 @@ SCREEN_TITLE = "Tank Game"
 MOVEMENT_SPEED = 3
 BULLET_SPEED = 5
 EXPLOSION_TEXTURE_COUNT = 60
-PLAYER_MOVE_FORCE = 500
+PLAYER_MOVE_FORCE = 800
+MAX_RICOCHETS = 2
 
 class Color(Enum):
     """Enum for EnemyTank class.
@@ -132,6 +133,18 @@ class Explosion(arcade.Sprite):
         else:
             self.remove_from_sprite_lists()
 
+class Bullet(arcade.Sprite):
+    """
+    Bullet class. Inherits from arcade.Sprite to allow setting textures
+    """
+    def __init__(self, bullet_image, scale=1):
+        super().__init__(bullet_image, scale, hit_box_algorithm="Simple")
+        self.num_ricochets = 0
+
+    # Remove the bullet sprite if it has bounced too many times
+    def update(self):
+        if self.num_ricochets > MAX_RICOCHETS:
+            self.remove_from_sprite_lists()
 
 class Obstacle(arcade.Sprite):
     """ Class for the obstacle 
