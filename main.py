@@ -36,6 +36,12 @@ class TankGame(arcade.Window):
         self.physics_engine = None
         self.obstacle_list = None
         self.exploded_tank_list = None
+        
+        # Sprites
+        self.player_sprite = None
+        self.closest_sprite = None
+        
+        self.scene = None
 
         self.explosion_texture_list = []
 
@@ -61,32 +67,58 @@ class TankGame(arcade.Window):
         self.explosions_list = arcade.SpriteList()
         self.obstacle_list = arcade.SpriteList()
         self.exploded_tank_list = arcade.SpriteList()
-
-        # Create the player tank and set its coordinates
+        
+        # Initialize sprites
         self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue.png", "assets/tankBlue_barrel_rotate.png", 1)
-        self.player_sprite.center_x = 64
-        self.player_sprite.center_y = 128
-        self.player_sprite.angle = 180
+        self.closest_sprite = arcade.Sprite()
+        
+        # Add player sprite and turret to player_list
         self.player_list.append(self.player_sprite)
         self.player_list.append(self.player_sprite.turret)
         
-        # Create the enemy tank and set its coordinates
-        self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", 1)
-        self.enemy_sprite.center_x = Tanks.SCREEN_WIDTH - 115
-        self.enemy_sprite.center_y = Tanks.SCREEN_HEIGHT - 128
-        self.enemy_sprite.angle = 180
-        self.enemy_list.append(self.enemy_sprite)
-        self.enemy_list.append(self.enemy_sprite.turret)
-        
-        # Load level and obstacles (not sure if layer options are required here but used in documentation)
-        tile_map = arcade.load_tilemap("maps/level.tmx", layer_options={"Obstacles": {"use_spatial_hash": True}})
-
-        # Loads the tilemap layer "Obstacles" into a sprite list
-        self.obstacle_list = tile_map.sprite_lists["Obstacles"]
+        # Load first level
+        self.load_next_level()
         
         # Collision Physics Engine blocks player from clipping through tiles
         self.obstacle_collision_engine = arcade.PhysicsEnginePlatformer(
             self.player_sprite, gravity_constant=0, walls=self.obstacle_list)
+        
+        
+    def load_next_level(self):
+        layer_options = {"Obstacles" : {"use_spatial_hash": True},
+                         "Enemies" : {"use_spatial_hash": True}}
+        
+        # Load level and obstacles (not sure if layer options are required here but used in documentation)
+        tile_map = arcade.load_tilemap("maps/level.tmx", layer_options=layer_options)
+
+        # Loads tilemap layers into respective sprite list
+        self.obstacle_list = tile_map.sprite_lists["Obstacles"]
+        self.enemy_tiles = tile_map.sprite_lists["Enemies"] 
+        
+        # TODO: Find how to get image path from tileset
+        # for now using "assets/tankBody_red.png"
+        
+        # Convert Sprites into EnemyTanks
+        for tile in self.enemy_tiles:
+            # type(arcade.tilemap.tilemap._get_image_source(tile, self.enemy_list))
+            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", 1)
+            self.enemy_sprite.center_x = tile.center_x
+            self.enemy_sprite.center_y = tile.center_y
+            self.enemy_sprite.angle = 180
+            self.enemy_list.append(self.enemy_sprite)
+            self.enemy_list.append(self.enemy_sprite.turret)
+        
+        self.player_sprite_list = tile_map.sprite_lists["Player"]
+        
+        # Create the player tank and set its coordinates
+        self.player_sprite.center_x = self.player_sprite_list[0].center_x
+        self.player_sprite.center_y = self.player_sprite_list[0].center_y
+        self.player_sprite.angle = 180
+        # self.explodables_list = tile_map.sprite_lists["Explodables"]
+        
+        # Set attributes for enemy tanks and player
+        
+        
         
 
     def on_draw(self):
@@ -98,11 +130,12 @@ class TankGame(arcade.Window):
 
         # Draw all sprite lists
         self.enemy_list.draw()
+        self.bullet_list.draw()
         self.player_list.draw()
         self.explosions_list.draw()
         self.obstacle_list.draw()
         self.exploded_tank_list.draw()
-        self.bullet_list.draw()
+        
 
     def on_update(self, delta_time):
         """
@@ -138,10 +171,26 @@ class TankGame(arcade.Window):
                 self.explosions_list.append(explosion)
 
                 explosion.update()
-
-                # Take off the turret and enemy tank, then add the exploded sprite
-                self.enemy_sprite.remove_from_sprite_lists()
-                self.enemy_sprite.turret.remove_from_sprite_lists()
+                
+                # # The closest enemy sprite to the bullet is the sprite that should be removed
+                # closest_sprite_distance = 0.0
+                
+                for enemy in self.enemy_list:
+                    if bullet.collides_with_sprite(enemy):
+                        # Take off the turret and enemy tank
+                        index = self.enemy_list.index(enemy)
+                        self.enemy_list[index].remove_from_sprite_lists()
+                        self.enemy_list[index].turret.remove_from_sprite_lists()
+                        
+                        
+                
+                #     # Hypotenuse
+                #     distance_bullet_to_enemy = math.sqrt(math.pow((enemy.center_x - bullet.center_x), 2)
+                #                                          + math.pow((enemy.center_y - bullet.center_y), 2))
+                #     if distance_bullet_to_enemy < closest_sprite_distance:
+                #         self.closest_sprite = enemy
+                
+                # add the exploded sprite
                 self.exploded_tank_list.append(self.enemy_sprite.exploded)
 
                 # Hide the bullet
@@ -150,6 +199,17 @@ class TankGame(arcade.Window):
 
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.remove_from_sprite_lists()
+                
+        # if all enemies are dead
+        if not self.enemy_list:
+            # Clear spritelists
+            self.bullet_list = arcade.SpriteList()
+            self.enemy_list = arcade.SpriteList()
+            self.explosions_list = arcade.SpriteList()
+            self.obstacle_list = arcade.SpriteList()
+            self.exploded_tank_list = arcade.SpriteList()
+                        
+            self.load_next_level()
     
 
     def on_key_press(self, key, key_modifiers):
