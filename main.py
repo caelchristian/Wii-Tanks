@@ -4,7 +4,6 @@ Tanks Game (modeled after Wii Play Tanks)
 Authored by: Cael Christian, Levi Putman, Olivia Wilson
 """
 
-from xml.etree.ElementInclude import include
 import arcade
 import Tanks
 import math
@@ -51,6 +50,11 @@ class TankGame(arcade.Window):
         sprite_height = 130
         file_name = "assets/explosions_sheet.png"
 
+        self.left_pressed: bool = False
+        self.right_pressed: bool = False
+        self.up_pressed: bool = False
+        self.down_pressed: bool = False
+
         # Load the explosions from a sprite sheet
         self.explosion_texture_list = arcade.load_spritesheet(file_name, sprite_width, sprite_height, columns, count)
 
@@ -76,48 +80,35 @@ class TankGame(arcade.Window):
         self.player_list.append(self.player_sprite)
         self.player_list.append(self.player_sprite.turret)
         
-        # Load first level
-        self.load_next_level()
-        
-        # Collision Physics Engine blocks player from clipping through tiles
-        self.obstacle_collision_engine = arcade.PhysicsEnginePlatformer(
-            self.player_sprite, gravity_constant=0, walls=self.obstacle_list)
-        
-        
-    def load_next_level(self):
-        layer_options = {"Obstacles" : {"use_spatial_hash": True},
-                         "Enemies" : {"use_spatial_hash": True}}
-        
+        # Create the enemy tank and set its coordinates
+        self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", 1)
+        self.enemy_sprite.center_x = Tanks.SCREEN_WIDTH - 115
+        self.enemy_sprite.center_y = Tanks.SCREEN_HEIGHT - 128
+        self.enemy_sprite.angle = 180
+        self.enemy_list.append(self.enemy_sprite)
+        self.enemy_list.append(self.enemy_sprite.turret)
+
         # Load level and obstacles (not sure if layer options are required here but used in documentation)
-        tile_map = arcade.load_tilemap("maps/level.tmx", layer_options=layer_options)
+        tile_map = arcade.load_tilemap("maps/level.tmx", layer_options={"Obstacles": {"use_spatial_hash": True}})
 
-        # Loads tilemap layers into respective sprite list
+        # Loads the tilemap layer "Obstacles" into a sprite list
         self.obstacle_list = tile_map.sprite_lists["Obstacles"]
-        self.enemy_tiles = tile_map.sprite_lists["Enemies"] 
-        
-        # TODO: Find how to get image path from tileset
-        # for now using "assets/tankBody_red.png"
-        
-        # Convert Sprites into EnemyTanks
-        for tile in self.enemy_tiles:
-            # type(arcade.tilemap.tilemap._get_image_source(tile, self.enemy_list))
-            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", 1)
-            self.enemy_sprite.center_x = tile.center_x
-            self.enemy_sprite.center_y = tile.center_y
-            self.enemy_sprite.angle = 180
-            self.enemy_list.append(self.enemy_sprite)
-            self.enemy_list.append(self.enemy_sprite.turret)
-        
-        self.player_sprite_list = tile_map.sprite_lists["Player"]
-        
-        # Create the player tank and set its coordinates
-        self.player_sprite.center_x = self.player_sprite_list[0].center_x
-        self.player_sprite.center_y = self.player_sprite_list[0].center_y
-        self.player_sprite.angle = 180
-        # self.explodables_list = tile_map.sprite_lists["Explodables"]
-        
-        # Set attributes for enemy tanks and player 
 
+        self.physics_engine = arcade.PymunkPhysicsEngine(damping=0.0001,
+                                                         gravity=(0,0))
+
+        self.physics_engine.add_sprite(self.player_sprite,
+                                       mass=1.0,
+                                       friction=1.0,
+                                       moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+                                       collision_type="player")
+
+
+        self.physics_engine.add_sprite_list(self.obstacle_list,
+                                            friction = 0,
+                                            collision_type="wall",
+                                            elasticity = 1.0,
+                                            body_type=arcade.PymunkPhysicsEngine.STATIC)
 
     def on_draw(self):
         """
@@ -141,8 +132,7 @@ class TankGame(arcade.Window):
         Partially from https://api.arcade.academy/en/2.6.0/examples/sprite_explosion_bitmapped.html
         """
         # Update the sprite lists
-        # self.physics_engine.update()
-        self.obstacle_collision_engine.update()
+        self.physics_engine.step()
         self.player_list.update()
         self.bullet_list.update()
         self.enemy_list.update()
@@ -151,6 +141,30 @@ class TankGame(arcade.Window):
 
         self.enemy_sprite.player_x = self.player_sprite.center_x
         self.enemy_sprite.player_y = self.player_sprite.center_y
+
+        if self.up_pressed:
+            # Move the tank to the up
+            self.physics_engine.apply_force(self.player_sprite, (0, -Tanks.PLAYER_MOVE_FORCE))
+            # Face the tank sprite upward
+            self.physics_engine.set_friction(self.player_sprite, 0)
+        if self.down_pressed:
+            # Move the tank to the down
+            self.physics_engine.apply_force(self.player_sprite, (0, Tanks.PLAYER_MOVE_FORCE))
+            # Face the tank sprite downward
+            self.physics_engine.set_friction(self.player_sprite, 0)
+        if self.left_pressed:
+            # Move the tank to the left
+            self.physics_engine.apply_force(self.player_sprite, (Tanks.PLAYER_MOVE_FORCE, 0))
+            # Face the tank sprite to the left
+            self.physics_engine.set_friction(self.player_sprite, 0)
+        if self.right_pressed:
+            # Move the tank to the right
+            self.physics_engine.apply_force(self.player_sprite, (-Tanks.PLAYER_MOVE_FORCE, 0))
+            # Face the tank sprite to the right
+            self.physics_engine.set_friction(self.player_sprite, 0)
+
+        if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
+            self.physics_engine.set_friction(self.player_sprite, 1.0)
 
         # If the bullet goes off the screen, remove it from the sprite lists
         for bullet in self.bullet_list:
@@ -199,17 +213,21 @@ class TankGame(arcade.Window):
 
             if bullet.bottom > self.width or bullet.top < 0 or bullet.right < 0 or bullet.left > self.width:
                 bullet.remove_from_sprite_lists()
-                
-        # if all enemies are dead
-        if not self.enemy_list:
-            # Clear spritelists
-            self.bullet_list = arcade.SpriteList()
-            self.enemy_list = arcade.SpriteList()
-            self.explosions_list = arcade.SpriteList()
-            self.obstacle_list = arcade.SpriteList()
-            self.exploded_tank_list = arcade.SpriteList()
-            
-            self.load_next_level()
+
+        # Check when bullets collide with walls
+        for bullet in self.bullet_list:
+            hit_list = arcade.check_for_collision_with_list(bullet, self.obstacle_list)
+            if len(hit_list) > 0:
+                bullet.num_ricochets += 1
+
+
+        # Remove bullets if they collide with eachother
+        bs = []
+        for bullet in self.bullet_list:
+            hit_list = arcade.check_for_collision_with_list(bullet, self.bullet_list)
+            for b in hit_list:
+                b.remove_from_sprite_lists()
+                bullet.remove_from_sprite_lists()
     
 
     def on_key_press(self, key, key_modifiers):
@@ -220,28 +238,13 @@ class TankGame(arcade.Window):
 
         # If the player presses an arrow key, move the tank
         if key == arcade.key.UP:
-            # Move the tank to the up
-            self.player_sprite.change_y = Tanks.MOVEMENT_SPEED
-            # Face the tank sprite upward
-            self.player_sprite.angle = 180
-
+            self.up_pressed = True
         elif key == arcade.key.DOWN:
-            # Move the tank to the down
-            self.player_sprite.change_y = -Tanks.MOVEMENT_SPEED
-            # Face the tank sprite downward
-            self.player_sprite.angle = 0
-
+            self.down_pressed = True
         elif key == arcade.key.LEFT:
-            # Move the tank to the left
-            self.player_sprite.change_x = -Tanks.MOVEMENT_SPEED
-            # Face the tank sprite to the left
-            self.player_sprite.angle = 270
-
+            self.left_pressed = True
         elif key == arcade.key.RIGHT:
-            # Move the tank to the right
-            self.player_sprite.change_x = Tanks.MOVEMENT_SPEED
-            # Face the tank sprite to the right
-            self.player_sprite.angle = 90
+            self.right_pressed = True
 
 
     def on_key_release(self, key, key_modifiers):
@@ -249,10 +252,14 @@ class TankGame(arcade.Window):
         Called whenever the user lets off a previously pressed key.
         """
         # If a player releases a key, stop moving the player and turret
-        if key == arcade.key.UP or key == arcade.key.DOWN:
-            self.player_sprite.change_y = 0
-        elif key == arcade.key.LEFT or key == arcade.key.RIGHT:
-            self.player_sprite.change_x = 0
+        if key == arcade.key.UP:
+            self.up_pressed = False
+        elif key == arcade.key.DOWN:
+            self.down_pressed = False
+        elif key == arcade.key.LEFT:
+            self.left_pressed = False
+        elif key == arcade.key.RIGHT:
+            self.right_pressed = False
 
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
@@ -269,14 +276,11 @@ class TankGame(arcade.Window):
         Called when the user presses a mouse button.
         """
         # Make bullet
-        bullet = arcade.Sprite("assets/bulletDark1_outline.png", 1)
+        bullet = Tanks.Bullet("assets/bulletDark1_outline.png", 1)
 
         # Position bullet at player's location
         start_x = self.player_sprite.center_x
         start_y = self.player_sprite.center_y
-
-        bullet.center_x = start_x
-        bullet.center_y = start_y
 
         # Destination for bullet (location of mouse)
         dest_x = x
@@ -289,12 +293,23 @@ class TankGame(arcade.Window):
 
         bullet.angle = math.degrees(angle) - 90
 
-        # Velocity
-        bullet.change_x = math.cos(angle) * Tanks.BULLET_SPEED
-        bullet.change_y = math.sin(angle) * Tanks.BULLET_SPEED
+        bullet.center_x = start_x + math.cos(angle) * 60
+        bullet.center_y = start_y + math.sin(angle) * 60
 
-        # Add the bullet to the sprite list to be drawn
-        self.bullet_list.append(bullet)
+        # If the turret is in a obstacle, don't shoot a bullet
+        hit_list = arcade.check_for_collision_with_list(self.player_sprite.turret, self.obstacle_list)
+        if len(hit_list) == 0:
+            # Shoot a bullet towards the mouse
+            self.physics_engine.add_sprite(bullet,
+                                                friction=0.1,
+                                                mass = 0.5,
+                                                damping = 1,
+                                                collision_type = "bullet",
+                                                moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+                                                elasticity = 1.0)
+            self.physics_engine.apply_force(bullet, (0, 8000))
+            # Add the bullet to the sprite list to be drawn
+            self.bullet_list.append(bullet)
 
 
     def on_mouse_release(self, x, y, button, key_modifiers):
