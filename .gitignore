@@ -1,2 +1,7 @@
 .idea
 __pycache__
+Enums.py
+Tiled.tiled-project
+Tiled.tiled-session
+.vscode/
+.DS_Store
