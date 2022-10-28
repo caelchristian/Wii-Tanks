@@ -16,25 +16,6 @@ MOVEMENT_SPEED = 3
 BULLET_SPEED = 5
 EXPLOSION_TEXTURE_COUNT = 60
 
-class Color(Enum):
-    """Enum for EnemyTank class.
-    Each color correlates to a different color tank.
-    Depending on the color, different attributes will
-    be loaded when constructing a EnemyTank.
-
-    Args:
-        Enum (enum): Color of tank.
-    """
-    BROWN: 1
-    GREY: 2
-    TEAL: 3
-    YELLOW: 4
-    RED: 5
-    GREEN: 6
-    PURPLE: 7
-    WHITE: 8
-    BLACK: 9
-
 class PlayerTank(arcade.Sprite):
     """
     Player Tank Class. Inherits from arcade.Sprite to allow setting textures
