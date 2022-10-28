@@ -36,6 +36,7 @@ class TankGame(arcade.Window):
         self.obstacle_list = None
         self.exploded_tank_list = None
 
+        self.tanks_destroyed = 0
         self.physics_engine = None
         self.explosion_texture_list = []
 
@@ -127,6 +128,14 @@ class TankGame(arcade.Window):
         self.explosions_list.draw()
         self.obstacle_list.draw()
         self.exploded_tank_list.draw()
+
+        # Draw the scoreboard
+        arcade.draw_text(text=f"Enemy Tanks Destroyed: {self.tanks_destroyed}", 
+                    start_x=0, 
+                    start_y=800,
+                    font_size=24,
+                    width=Tanks.SCREEN_WIDTH,
+                    align="center")
         
 
     def on_update(self, delta_time):
@@ -193,6 +202,7 @@ class TankGame(arcade.Window):
                 enemy.remove_from_sprite_lists()
                 enemy.turret.remove_from_sprite_lists()
                 bullet.remove_from_sprite_lists()
+                self.tanks_destroyed += 1
 
         # Check when bullets collide with walls
         for bullet in self.bullet_list:
