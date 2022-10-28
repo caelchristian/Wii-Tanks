@@ -116,10 +116,8 @@ class TankGame(arcade.Window):
         self.player_sprite.angle = 180
         # self.explodables_list = tile_map.sprite_lists["Explodables"]
         
-        # Set attributes for enemy tanks and player
-        
-        
-        
+        # Set attributes for enemy tanks and player 
+
 
     def on_draw(self):
         """
@@ -175,20 +173,22 @@ class TankGame(arcade.Window):
                 # # The closest enemy sprite to the bullet is the sprite that should be removed
                 # closest_sprite_distance = 0.0
                 
+                # TODO When there are multiple enemies, it doesn't know which enemy is actually shot
+                # I tried fixing but I still could not fix it
                 for enemy in self.enemy_list:
                     if bullet.collides_with_sprite(enemy):
-                        # Take off the turret and enemy tank
+                        # Find the index of the enemy shot
                         index = self.enemy_list.index(enemy)
-                        self.enemy_list[index].remove_from_sprite_lists()
-                        self.enemy_list[index].turret.remove_from_sprite_lists()
+                        # Sprite lists are one-based indexing
+                        # self.enemy_list[index-1].turret.remove_from_sprite_lists()
+                        self.enemy_list[index - 1].remove_from_sprite_lists()
                         
-                        
-                
                 #     # Hypotenuse
                 #     distance_bullet_to_enemy = math.sqrt(math.pow((enemy.center_x - bullet.center_x), 2)
                 #                                          + math.pow((enemy.center_y - bullet.center_y), 2))
                 #     if distance_bullet_to_enemy < closest_sprite_distance:
                 #         self.closest_sprite = enemy
+                
                 
                 # add the exploded sprite
                 self.exploded_tank_list.append(self.enemy_sprite.exploded)
@@ -208,7 +208,7 @@ class TankGame(arcade.Window):
             self.explosions_list = arcade.SpriteList()
             self.obstacle_list = arcade.SpriteList()
             self.exploded_tank_list = arcade.SpriteList()
-                        
+            
             self.load_next_level()
     
 
