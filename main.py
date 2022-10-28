@@ -40,6 +40,7 @@ class TankGame(arcade.Window):
         self.tanks_destroyed = 0
         self.end_level_time = 1
         self.game_over = False
+        self.game_win = False
         self.physics_engine = None
         self.explosion_texture_list = []
 
@@ -141,7 +142,7 @@ class TankGame(arcade.Window):
                         font_size=24,
                         width=Tanks.SCREEN_WIDTH,
                         align="center")
-        else:
+        elif self.game_win:
             # Winning screen
             arcade.draw_text(text=f"You won the game! \nPress the escape key to exit.", 
                         start_x=0, 
@@ -150,6 +151,16 @@ class TankGame(arcade.Window):
                         color=arcade.color.BLACK,
                         width=Tanks.SCREEN_WIDTH,
                         align="center")
+        else:
+            # Winning screen
+            arcade.draw_text(text=f"You lost the game! \nPress the escape key to exit.", 
+                        start_x=0, 
+                        start_y=400,
+                        font_size=48,
+                        color=arcade.color.BLACK,
+                        width=Tanks.SCREEN_WIDTH,
+                        align="center")
+            
         
 
     def on_update(self, delta_time):
@@ -172,6 +183,45 @@ class TankGame(arcade.Window):
             if isinstance(enemy, Tanks.EnemyTank):
                 enemy.player_x = self.player_sprite.center_x
                 enemy.player_y = self.player_sprite.center_y
+            
+                if enemy.can_shoot:
+                    # Make bullet
+                    bullet = Tanks.Bullet("assets/bulletDark1_outline.png", 1)
+
+                    # Get distances from enemy to player
+                    x_diff = enemy.player_x - enemy.center_x
+                    y_diff = enemy.player_y - enemy.center_y
+                    # Get angle of bullet
+                    angle = math.atan2(y_diff, x_diff)
+                    bullet.angle = math.degrees(angle) - 90
+
+                    # Offset so the bullet doesn't start inside the tank
+                    bullet.center_x = enemy.center_x + math.cos(angle) * 60
+                    bullet.center_y = enemy.center_y + math.sin(angle) * 60
+
+                    # Apply force to the bullet using the physics engine
+                    self.physics_engine.add_sprite(bullet,
+                                                        friction=0.1,
+                                                        mass = 0.5,
+                                                        damping = 1,
+                                                        collision_type = "bullet",
+                                                        moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+                                                        elasticity = 1.0)
+                    self.physics_engine.apply_force(bullet, (0, Tanks.BULLET_MOVE_FORCE))
+                    
+                    # Add the bullet to the sprite list to be drawn
+                    self.bullet_list.append(bullet)
+                    
+                    enemy.cooldown = 1
+                    enemy.can_shoot = False
+                    
+                    
+                else:
+                    # enemy on cooldown, remove delta time
+                    enemy.cooldown -= delta_time
+                    if enemy.cooldown < 0:
+                        enemy.can_shoot = True
+                
 
         # Apply forces to push player in direction of arrow keys
         # Set friction to 0 temporarily to make the player move faster
@@ -217,6 +267,10 @@ class TankGame(arcade.Window):
                 enemy.turret.remove_from_sprite_lists()
                 bullet.remove_from_sprite_lists()
                 self.tanks_destroyed += 1
+                
+            if len(arcade.check_for_collision_with_list(bullet, self.player_list)) > 0:
+                self.game_over = True
+                Tanks.PlayerTank
 
         # Check when bullets collide with walls
         for bullet in self.bullet_list:
