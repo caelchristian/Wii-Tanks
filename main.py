@@ -36,7 +36,10 @@ class TankGame(arcade.Window):
         self.obstacle_list = None
         self.exploded_tank_list = None
 
+        # Initialize instance variables
         self.tanks_destroyed = 0
+        self.end_level_time = 1
+        self.game_over = False
         self.physics_engine = None
         self.explosion_texture_list = []
 
@@ -120,22 +123,33 @@ class TankGame(arcade.Window):
         # Clear the frame to prepare for drawing sprites
         arcade.start_render()
 
-        # Draw all sprite lists
-        self.enemy_list.draw()
-        self.enemy_turret_list.draw()
-        self.bullet_list.draw()
-        self.player_list.draw()
-        self.explosions_list.draw()
-        self.obstacle_list.draw()
-        self.exploded_tank_list.draw()
+        if not self.game_over:
+            # Draw all sprite lists
+            self.exploded_tank_list.draw()
+            self.enemy_list.draw()
+            self.enemy_turret_list.draw()
+            self.bullet_list.draw()
+            self.player_list.draw()
+            self.explosions_list.draw()
+            self.obstacle_list.draw()
+            
 
-        # Draw the scoreboard
-        arcade.draw_text(text=f"Enemy Tanks Destroyed: {self.tanks_destroyed}", 
-                    start_x=0, 
-                    start_y=800,
-                    font_size=24,
-                    width=Tanks.SCREEN_WIDTH,
-                    align="center")
+            # Draw the scoreboard
+            arcade.draw_text(text=f"Enemy Tanks Destroyed: {self.tanks_destroyed}", 
+                        start_x=0, 
+                        start_y=800,
+                        font_size=24,
+                        width=Tanks.SCREEN_WIDTH,
+                        align="center")
+        else:
+            # Winning screen
+            arcade.draw_text(text=f"You won the game! \nPress the escape key to exit.", 
+                        start_x=0, 
+                        start_y=400,
+                        font_size=48,
+                        color=arcade.color.BLACK,
+                        width=Tanks.SCREEN_WIDTH,
+                        align="center")
         
 
     def on_update(self, delta_time):
@@ -216,7 +230,13 @@ class TankGame(arcade.Window):
             for b in hit_list:
                 b.remove_from_sprite_lists()
                 bullet.remove_from_sprite_lists()
-    
+        
+        # If all enemy tanks are destroyed, the game will end in one second
+        if len(self.enemy_list) == 0:
+            self.end_level_time -= delta_time
+
+        if self.end_level_time < 0:
+            self.game_over = True
 
     def on_key_press(self, key, key_modifiers):
         """
@@ -234,6 +254,9 @@ class TankGame(arcade.Window):
         elif key == arcade.key.RIGHT:
             self.right_pressed = True
 
+        # If the game is over and they press escape, close the application
+        if self.game_over and key == arcade.key.ESCAPE:
+            arcade.close_window()
 
     def on_key_release(self, key, key_modifiers):
         """
