@@ -112,7 +112,7 @@ class TankGame(arcade.Window):
             self.enemy_turret_list.append(self.enemy_sprite.turret)
         
         # Create the player tank object and set its coordinates
-        self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue.png", "assets/tankBlue_barrel_rotate.png", 1)
+        self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", 1)
         self.player_sprite.center_x = player_tile.center_x
         self.player_sprite.center_y = player_tile.center_y
         self.player_sprite.angle = 180
@@ -265,7 +265,6 @@ class TankGame(arcade.Window):
 
             # For every enemy that the player has hit, explode them
             for enemy in hit_list:
-
                 # Move it to the location of the enemy x and y
                 self.explosion_animation(enemy.center_x, enemy.center_y)
 
@@ -279,6 +278,16 @@ class TankGame(arcade.Window):
                 self.tanks_destroyed += 1
                 
             if arcade.check_for_collision(bullet, self.player_sprite):
+                # Move it to the location of the player
+                self.explosion_animation(self.player_sprite.center_x, self.player_sprite.center_y)
+
+                # Add exploded enemy to exploded tank list
+                self.exploded_tank_list.append(self.player_sprite.exploded)
+
+                # Remove the enemy tank and the bullet
+                self.player_spriteplayer.remove_from_sprite_lists()
+                self.player_spriteplayer.turret.remove_from_sprite_lists()
+                bullet.remove_from_sprite_lists()
                 # user doesn't win by default
                 self.game_over = True
 
