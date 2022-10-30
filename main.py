@@ -36,8 +36,11 @@ class TankGame(arcade.Window):
         self.physics_engine = None
         self.obstacle_list = None
         self.exploded_tank_list = None
-
+        self.mine_list = None
+        
         self.explosion_texture_list = []
+
+        self.total_time = 0.0
 
         columns = 5
         count = 5
@@ -54,6 +57,9 @@ class TankGame(arcade.Window):
         """ 
         Setup the sprite lists and place the sprites on the screen
         """
+        # Create total time
+        self.total_time = 0.0
+
         # Create the Sprite lists
         self.bullet_list = arcade.SpriteList()
         self.enemy_list = arcade.SpriteList()
@@ -61,6 +67,7 @@ class TankGame(arcade.Window):
         self.explosions_list = arcade.SpriteList()
         self.obstacle_list = arcade.SpriteList()
         self.exploded_tank_list = arcade.SpriteList()
+        self.mine_list = arcade.SpriteList()
 
         # Create the player tank and set its coordinates
         self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue.png", "assets/tankBlue_barrel_rotate.png", 1)
@@ -98,10 +105,11 @@ class TankGame(arcade.Window):
 
         # Draw all sprite lists
         self.enemy_list.draw()
-        self.player_list.draw()
         self.explosions_list.draw()
         self.obstacle_list.draw()
         self.exploded_tank_list.draw()
+        self.mine_list.draw()
+        self.player_list.draw()
         self.bullet_list.draw()
 
     def on_update(self, delta_time):
@@ -117,9 +125,31 @@ class TankGame(arcade.Window):
         self.enemy_list.update()
         self.explosions_list.update()
         self.exploded_tank_list.update()
+        self.mine_list.update()
 
         self.enemy_sprite.player_x = self.player_sprite.center_x
         self.enemy_sprite.player_y = self.player_sprite.center_y
+
+    
+        for mine in self.mine_list:
+            if mine.timer(delta_time) >= mine.end_time:
+
+                # Make the explosion
+                explosion = Tanks.Explosion(self.explosion_texture_list)
+
+                # Move it to location of the mine
+                explosion.center_x = mine.center_x
+                explosion.center_y = mine.center_y
+
+                # Add to list of explosion sprites
+                self.explosions_list.append(explosion)
+
+                explosion.update()
+
+                # Remove the mine from the sprite list
+                mine.remove_from_sprite_lists()
+        
+
 
         # If the bullet goes off the screen, remove it from the sprite lists
         for bullet in self.bullet_list:
@@ -182,6 +212,14 @@ class TankGame(arcade.Window):
             self.player_sprite.change_x = Tanks.MOVEMENT_SPEED
             # Face the tank sprite to the right
             self.player_sprite.angle = 90
+
+        elif key == arcade.key.SPACE:
+            # Create the mine that is dropped
+            self.mine = Tanks.Mine("assets/barrelBlack_top.png", 1)
+            self.mine.center_x = self.player_sprite.center_x
+            self.mine.center_y = self.player_sprite.center_y
+            self.mine_list.append(self.mine)
+            
 
 
     def on_key_release(self, key, key_modifiers):
