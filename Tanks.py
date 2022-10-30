@@ -134,7 +134,8 @@ class Bullet(arcade.Sprite):
             self.remove_from_sprite_lists()
 
 class Obstacle(arcade.Sprite):
-    """ Class for the obstacle 
+    """ 
+    Class for the obstacles. 
     """
     def __init__(self, image_source, scale=1, explodable=False):
         """Constructor for the Obstacle class
@@ -146,3 +147,29 @@ class Obstacle(arcade.Sprite):
         super().__init__(image_source, scale, hit_box_algorithm="Simple")
         self.explodable = explodable
 
+
+class Mine(arcade.Sprite):
+    """ 
+    Class for the mines.
+    """
+
+    def __init__(self, image_source, scale=1):
+        """Constructor for the Mine class
+
+        Args:
+            image_source (str): file path of the sprite image
+            scale (int, optional): scales the sprite. Defaults to 1.
+        """
+        super().__init__(image_source, scale)
+        self.total_time = 0.0
+        self.end_time = 10.0
+
+    def timer(self, delta_time):
+        self.total_time += delta_time
+        return self.total_time
+
+
+
+
+        
+        
