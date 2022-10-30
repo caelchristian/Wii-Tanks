@@ -24,6 +24,8 @@ class PlayerTank(arcade.Sprite):
         self.turret = arcade.Sprite(turret_image, scale)
         self.target_x = 0
         self.target_y = 0
+        self.can_shoot = False
+        self.cooldown = 1
 
 
     def update(self):

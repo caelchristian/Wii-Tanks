@@ -268,9 +268,9 @@ class TankGame(arcade.Window):
                 bullet.remove_from_sprite_lists()
                 self.tanks_destroyed += 1
                 
-            if len(arcade.check_for_collision_with_list(bullet, self.player_list)) > 0:
+            if arcade.check_for_collision(bullet, self.player_sprite):
+                # user doesn't win by default
                 self.game_over = True
-                Tanks.PlayerTank
 
         # Check when bullets collide with walls
         for bullet in self.bullet_list:
@@ -291,6 +291,14 @@ class TankGame(arcade.Window):
 
         if self.end_level_time < 0:
             self.game_over = True
+            
+        if not self.player_sprite.can_shoot:
+            # player on cooldown, remove delta time
+            self.player_sprite.cooldown -= delta_time
+            if self.player_sprite.cooldown < 0:
+                self.player_sprite.can_shoot = True
+            
+        
 
     def on_key_press(self, key, key_modifiers):
         """
@@ -344,36 +352,40 @@ class TankGame(arcade.Window):
         hit_list = arcade.check_for_collision_with_list(self.player_sprite.turret, self.obstacle_list)
         if len(hit_list) > 0:
             return None
-
-        # Make bullet
-        bullet = Tanks.Bullet("assets/bulletDark1_outline.png", 1)
-
-        # Position bullet at player's location
-        start_x = self.player_sprite.center_x
-        start_y = self.player_sprite.center_y
-
-        # Angle the bullet travels
-        x_diff = x - start_x
-        y_diff = y - start_y
-        angle = math.atan2(y_diff, x_diff)
-        bullet.angle = math.degrees(angle) - 90
-
-        # Offset so the bullet doesn't start inside the player tank
-        bullet.center_x = start_x + math.cos(angle) * 60
-        bullet.center_y = start_y + math.sin(angle) * 60
-
-        # Apply force to the bullet using the physics engine
-        self.physics_engine.add_sprite(bullet,
-                                            friction=0.1,
-                                            mass = 0.5,
-                                            damping = 1,
-                                            collision_type = "bullet",
-                                            moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
-                                            elasticity = 1.0)
-        self.physics_engine.apply_force(bullet, (0, Tanks.BULLET_MOVE_FORCE))
         
-        # Add the bullet to the sprite list to be drawn
-        self.bullet_list.append(bullet)
+        if self.player_sprite.can_shoot:
+            # Make bullet
+            bullet = Tanks.Bullet("assets/bulletDark1_outline.png", 1)
+
+            # Position bullet at player's location
+            start_x = self.player_sprite.center_x
+            start_y = self.player_sprite.center_y
+
+            # Angle the bullet travels
+            x_diff = x - start_x
+            y_diff = y - start_y
+            angle = math.atan2(y_diff, x_diff)
+            bullet.angle = math.degrees(angle) - 90
+
+            # Offset so the bullet doesn't start inside the player tank
+            bullet.center_x = start_x + math.cos(angle) * 60
+            bullet.center_y = start_y + math.sin(angle) * 60
+
+            # Apply force to the bullet using the physics engine
+            self.physics_engine.add_sprite(bullet,
+                                                friction=0.1,
+                                                mass = 0.5,
+                                                damping = 1,
+                                                collision_type = "bullet",
+                                                moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+                                                elasticity = 1.0)
+            self.physics_engine.apply_force(bullet, (0, Tanks.BULLET_MOVE_FORCE))
+            
+            # Add the bullet to the sprite list to be drawn
+            self.bullet_list.append(bullet)
+            
+            self.player_sprite.cooldown = 1
+            self.player_sprite.can_shoot = False
 
 
     def on_mouse_release(self, x, y, button, key_modifiers):
