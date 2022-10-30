@@ -249,28 +249,27 @@ class TankGame(arcade.Window):
         if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
             self.physics_engine.set_friction(self.player_sprite, 1.0)
 
-    
+        # Explode all the mines in the mine list
         for mine in self.mine_list:
             if mine.timer(delta_time) >= mine.end_time:
-
-                # Make the explosion
-                explosion = Tanks.Explosion(self.explosion_texture_list)
 
                 # Move it to location of the mine
                 self.explosion_animation(mine.center_x, mine.center_y)
 
                 # Remove the mine from the sprite list
                 mine.remove_from_sprite_lists()
-        
-
 
         # Check bullets for collision with enemies, obstacles and other bullets
         for bullet in self.bullet_list:
             hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
 
+            # For every enemy that the player has hit, explode them
             for enemy in hit_list:
+
+                # Move it to the location of the enemy x and y
                 self.explosion_animation(enemy.center_x, enemy.center_y)
 
+                # Add exploded enemy to exploded tank list
                 self.exploded_tank_list.append(enemy.exploded)
 
                 # Remove the enemy tank and the bullet
@@ -422,7 +421,7 @@ class TankGame(arcade.Window):
         # Make the explosion
         explosion = Tanks.Explosion(self.explosion_texture_list)
 
-        # Move it to location of the enemy tank
+        # Move it to location of the parameter x and y
         explosion.center_x = x
         explosion.center_y = y
 
