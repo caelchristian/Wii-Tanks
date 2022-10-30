@@ -19,9 +19,10 @@ class PlayerTank(arcade.Sprite):
     """
     Player Tank Class. Inherits from arcade.Sprite to allow setting textures
     """
-    def __init__(self, tank_image, turret_image, scale=1):
+    def __init__(self, tank_image, turret_image, exploded_tank_image, scale=1):
         super().__init__(tank_image, scale, hit_box_algorithm="Simple")
         self.turret = arcade.Sprite(turret_image, scale)
+        self.exploded = arcade.Sprite(exploded_tank_image, scale)
         self.target_x = 0
         self.target_y = 0
         self.can_shoot = False
