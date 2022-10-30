@@ -35,7 +35,8 @@ class TankGame(arcade.Window):
         self.enemy_turret_list = None
         self.obstacle_list = None
         self.exploded_tank_list = None
-
+        self.mine_list = None
+        
         # Initialize instance variables
         self.tanks_destroyed = 0
         self.end_level_time = 1
@@ -89,6 +90,7 @@ class TankGame(arcade.Window):
         self.explosions_list = arcade.SpriteList()
         self.obstacle_list = arcade.SpriteList()
         self.exploded_tank_list = arcade.SpriteList()
+        self.mine_list = arcade.SpriteList()
 
         # Load level from the tilemap
         layer_options = {"Obstacles" : {"use_spatial_hash": True},
@@ -177,6 +179,7 @@ class TankGame(arcade.Window):
         self.enemy_list.update()
         self.explosions_list.update()
         self.exploded_tank_list.update()
+        self.mine_list.update()
 
         # Update all the enemy tanks to know where the player is
         for enemy in self.enemy_list:
@@ -245,6 +248,27 @@ class TankGame(arcade.Window):
         if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
             self.physics_engine.set_friction(self.player_sprite, 1.0)
 
+    
+        for mine in self.mine_list:
+            if mine.timer(delta_time) >= mine.end_time:
+
+                # Make the explosion
+                explosion = Tanks.Explosion(self.explosion_texture_list)
+
+                # Move it to location of the mine
+                explosion.center_x = mine.center_x
+                explosion.center_y = mine.center_y
+
+                # Add to list of explosion sprites
+                self.explosions_list.append(explosion)
+
+                explosion.update()
+
+                # Remove the mine from the sprite list
+                mine.remove_from_sprite_lists()
+        
+
+
         # Check bullets for collision with enemies, obstacles and other bullets
         for bullet in self.bullet_list:
             hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
@@ -307,6 +331,14 @@ class TankGame(arcade.Window):
             self.left_pressed = True
         elif key == arcade.key.RIGHT:
             self.right_pressed = True
+
+        elif key == arcade.key.SPACE:
+            # Create the mine that is dropped
+            self.mine = Tanks.Mine("assets/barrelBlack_top.png", 1)
+            self.mine.center_x = self.player_sprite.center_x
+            self.mine.center_y = self.player_sprite.center_y
+            self.mine_list.append(self.mine)
+            
 
         # If the game is over and they press escape, close the application
         if self.game_over and key == arcade.key.ESCAPE:
