@@ -42,7 +42,6 @@ class TankGame(arcade.Window):
         self.end_level_time = 1
         self.player_dead = False
         self.game_over = False
-        self.game_win = False
         self.physics_engine = None
         self.explosion_texture_list = []
 
@@ -156,7 +155,7 @@ class TankGame(arcade.Window):
                         width=Tanks.SCREEN_WIDTH,
                         align="center")
         else:
-            # Winning screen
+            # Losing screen
             arcade.draw_text(text=f"You lost the game! \nPress the escape key to exit.", 
                         start_x=0, 
                         start_y=400,
@@ -167,31 +166,38 @@ class TankGame(arcade.Window):
             
             
     def update_player(self):
+        """ Moves the player according to keys pressed
+        """
         # Apply forces to push player in direction of arrow keys
         # Set friction to 0 temporarily to make the player move faster
-        if self.up_pressed:
-            self.physics_engine.apply_force(self.player_sprite, (0, -Tanks.PLAYER_MOVE_FORCE))
-            self.physics_engine.set_friction(self.player_sprite, 0)
-        
-        if self.down_pressed:
-            self.physics_engine.apply_force(self.player_sprite, (0, Tanks.PLAYER_MOVE_FORCE))
-            self.physics_engine.set_friction(self.player_sprite, 0)
-        
-        if self.left_pressed:
-            self.physics_engine.apply_force(self.player_sprite, (Tanks.PLAYER_MOVE_FORCE, 0))
-            self.physics_engine.set_friction(self.player_sprite, 0)
-        
-        if self.right_pressed:
-            self.physics_engine.apply_force(self.player_sprite, (-Tanks.PLAYER_MOVE_FORCE, 0))
-            self.physics_engine.set_friction(self.player_sprite, 0)
+        if self.player_sprite in self.player_list:
+            if self.up_pressed:
+                self.physics_engine.apply_force(self.player_sprite, (0, -Tanks.PLAYER_MOVE_FORCE))
+                self.physics_engine.set_friction(self.player_sprite, 0)
+            
+            if self.down_pressed:
+                self.physics_engine.apply_force(self.player_sprite, (0, Tanks.PLAYER_MOVE_FORCE))
+                self.physics_engine.set_friction(self.player_sprite, 0)
+            
+            if self.left_pressed:
+                self.physics_engine.apply_force(self.player_sprite, (Tanks.PLAYER_MOVE_FORCE, 0))
+                self.physics_engine.set_friction(self.player_sprite, 0)
+            
+            if self.right_pressed:
+                self.physics_engine.apply_force(self.player_sprite, (-Tanks.PLAYER_MOVE_FORCE, 0))
+                self.physics_engine.set_friction(self.player_sprite, 0)
 
-        # If no keys are pressed, set the friction to 1 to slow the tank down
-        if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
-            if self.player_sprite in self.player_list:
+            # If no keys are pressed, set the friction to 1 to slow the tank down
+            if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
                 self.physics_engine.set_friction(self.player_sprite, 1.0)
         
         
     def update_enemies(self, delta_time):
+        """ Updates enemies and causes them to shoot bullets
+
+        Args:
+            delta_time (float): time passed since last update
+        """
         for enemy in self.enemy_list:
             if isinstance(enemy, Tanks.EnemyTank):
                 enemy.player_x = self.player_sprite.center_x
@@ -225,19 +231,22 @@ class TankGame(arcade.Window):
                     # Add the bullet to the sprite list to be drawn
                     self.bullet_list.append(bullet)
                     
-                    enemy.cooldown = 1
+                    # Reset the cooldown
+                    enemy.cooldown = Tanks.ENEMY_SHOOT_COOLDOWN
                     enemy.can_shoot = False
                     
                     
                 else:
-                    # enemy on cooldown, remove delta time
+                    # Enemy on cooldown, reduce the cooldown
                     enemy.cooldown -= delta_time
                     if enemy.cooldown < 0:
                         enemy.can_shoot = True
         
         
-    def update_explodables(self, delta_time):
-        # Update all the enemy tanks to know where the player is
+    def update_mines(self, delta_time):
+        """ Updates the mine objects
+        """
+        # Reduce the time to explosion for all mines
         for mine in self.mine_list:
             if mine.timer(delta_time) >= mine.end_time:
 
@@ -249,6 +258,8 @@ class TankGame(arcade.Window):
     
     
     def update_bullets(self):
+        """ Checks all of the bullets to see if they have collided with tanks or walls
+        """
         # Check bullets for collision with enemies, obstacles and other bullets
         for bullet in self.bullet_list:
             hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
@@ -272,9 +283,6 @@ class TankGame(arcade.Window):
                 # Move it to the location of the player
                 self.explosion_animation(self.player_sprite.center_x, self.player_sprite.center_y)
 
-                # Add exploded enemy to exploded tank list
-                self.exploded_tank_list.append(self.player_sprite.exploded)
-
                 # Remove the enemy tank and the bullet
                 self.player_sprite.remove_from_sprite_lists()
                 self.player_sprite.turret.remove_from_sprite_lists()
@@ -288,7 +296,6 @@ class TankGame(arcade.Window):
                 bullet.num_ricochets += 1
                 
         # Remove bullets if they collide with eachother
-        # (called OUTSIDE forloop since they're being removed from sprite list)
         for bullet in self.bullet_list:
             hit_list = arcade.check_for_collision_with_list(bullet, self.bullet_list)
             for b in hit_list:
@@ -297,18 +304,20 @@ class TankGame(arcade.Window):
                 
                 
     def update_delta_time(self, delta_time):
-        # If all enemy tanks are destroyed, the game will end in one second
-        if len(self.enemy_list) == 0:
-            self.end_level_time -= delta_time
-
-        if self.player_dead:
+        """ Updates all time based functionality
+        
+        Args:
+            delta_time (float): time passed since last update
+        """
+        # If all enemy tanks are destroyed OR the player dies, the game will end in one second
+        if len(self.enemy_list) == 0 or self.player_dead:
             self.end_level_time -= delta_time
 
         if self.end_level_time < 0:
             self.game_over = True
             
         if not self.player_sprite.can_shoot:
-            # player on cooldown, remove delta time
+            # Player shoot on cooldown, remove delta time
             self.player_sprite.cooldown -= delta_time
             if self.player_sprite.cooldown < 0:
                 self.player_sprite.can_shoot = True
@@ -330,10 +339,10 @@ class TankGame(arcade.Window):
         self.exploded_tank_list.update()
         self.mine_list.update()
     
-        # order might matter
+        # Call all custom update functions
         self.update_player()
         self.update_enemies(delta_time)
-        self.update_explodables(delta_time)
+        self.update_mines(delta_time)
         self.update_delta_time(delta_time)
         self.update_bullets()
         
@@ -443,7 +452,7 @@ class TankGame(arcade.Window):
 
     def explosion_animation(self, x, y):
         """
-        An explosion function that causes an explosion animation
+        An explosion function that creates an explosion animation
         based on the x and y coordinates.
         """
         # Make the explosion

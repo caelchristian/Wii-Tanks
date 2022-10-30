@@ -13,6 +13,9 @@ SCREEN_TITLE = "Tank Game"
 EXPLOSION_TEXTURE_COUNT = 60
 PLAYER_MOVE_FORCE = 1500
 BULLET_MOVE_FORCE = 8000
+PLAYER_SHOOT_COOLDOWN = 1
+ENEMY_SHOOT_COOLDOWN = 5
+MINE_EXPLODE_TIME = 10
 MAX_RICOCHETS = 2
 
 class PlayerTank(arcade.Sprite):
@@ -26,7 +29,7 @@ class PlayerTank(arcade.Sprite):
         self.target_x = 0
         self.target_y = 0
         self.can_shoot = False
-        self.cooldown = 1
+        self.cooldown = PLAYER_SHOOT_COOLDOWN
 
 
     def update(self):
@@ -59,7 +62,7 @@ class EnemyTank(arcade.Sprite):
         self.player_x = 0
         self.player_y = 0
         self.can_shoot = False
-        self.cooldown = 1
+        self.cooldown = ENEMY_SHOOT_COOLDOWN
 
     
     def update(self):
@@ -162,8 +165,8 @@ class Mine(arcade.Sprite):
             scale (int, optional): scales the sprite. Defaults to 1.
         """
         super().__init__(image_source, scale)
-        self.total_time = 0.0
-        self.end_time = 10.0
+        self.total_time = 0
+        self.end_time = MINE_EXPLODE_TIME
 
     def timer(self, delta_time):
         self.total_time += delta_time
