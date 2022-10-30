@@ -131,6 +131,7 @@ class TankGame(arcade.Window):
             self.exploded_tank_list.draw()
             self.enemy_list.draw()
             self.enemy_turret_list.draw()
+            self.mine_list.draw()
             self.bullet_list.draw()
             self.player_list.draw()
             self.explosions_list.draw()
