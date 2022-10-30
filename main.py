@@ -40,6 +40,7 @@ class TankGame(arcade.Window):
         # Initialize instance variables
         self.tanks_destroyed = 0
         self.end_level_time = 1
+        self.player_dead = False
         self.game_over = False
         self.game_win = False
         self.physics_engine = None
@@ -145,7 +146,7 @@ class TankGame(arcade.Window):
                         font_size=24,
                         width=Tanks.SCREEN_WIDTH,
                         align="center")
-        elif self.game_win:
+        elif not self.player_dead:
             # Winning screen
             arcade.draw_text(text=f"You won the game! \nPress the escape key to exit.", 
                         start_x=0, 
@@ -186,7 +187,8 @@ class TankGame(arcade.Window):
 
         # If no keys are pressed, set the friction to 1 to slow the tank down
         if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
-            self.physics_engine.set_friction(self.player_sprite, 1.0)
+            if self.player_sprite in self.player_list:
+                self.physics_engine.set_friction(self.player_sprite, 1.0)
         
         
     def update_enemies(self, delta_time):
@@ -274,11 +276,11 @@ class TankGame(arcade.Window):
                 self.exploded_tank_list.append(self.player_sprite.exploded)
 
                 # Remove the enemy tank and the bullet
-                self.player_spriteplayer.remove_from_sprite_lists()
-                self.player_spriteplayer.turret.remove_from_sprite_lists()
+                self.player_sprite.remove_from_sprite_lists()
+                self.player_sprite.turret.remove_from_sprite_lists()
                 bullet.remove_from_sprite_lists()
                 # user doesn't win by default
-                self.game_over = True
+                self.player_dead = True
                 
             # Increment ricochets if wall hit
             hit_list = arcade.check_for_collision_with_list(bullet, self.obstacle_list)
@@ -297,6 +299,9 @@ class TankGame(arcade.Window):
     def update_delta_time(self, delta_time):
         # If all enemy tanks are destroyed, the game will end in one second
         if len(self.enemy_list) == 0:
+            self.end_level_time -= delta_time
+
+        if self.player_dead:
             self.end_level_time -= delta_time
 
         if self.end_level_time < 0:
