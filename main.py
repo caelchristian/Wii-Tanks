@@ -257,13 +257,7 @@ class TankGame(arcade.Window):
                 explosion = Tanks.Explosion(self.explosion_texture_list)
 
                 # Move it to location of the mine
-                explosion.center_x = mine.center_x
-                explosion.center_y = mine.center_y
-
-                # Add to list of explosion sprites
-                self.explosions_list.append(explosion)
-
-                explosion.update()
+                self.explosion_animation(mine.center_x, mine.center_y)
 
                 # Remove the mine from the sprite list
                 mine.remove_from_sprite_lists()
@@ -275,16 +269,8 @@ class TankGame(arcade.Window):
             hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
 
             for enemy in hit_list:
-                # Make the explosion
-                explosion = Tanks.Explosion(self.explosion_texture_list)
+                self.explosion_animation(enemy.center_x, enemy.center_y)
 
-                # Move it to location of the enemy tank
-                explosion.center_x = enemy.center_x
-                explosion.center_y = enemy.center_y
-
-                # Add to list of explosion sprites
-                self.explosions_list.append(explosion)
-                explosion.update()
                 self.exploded_tank_list.append(enemy.exploded)
 
                 # Remove the enemy tank and the bullet
@@ -427,6 +413,22 @@ class TankGame(arcade.Window):
         Not implemented yet.
         """
         pass
+
+    def explosion_animation(self, x, y):
+        """
+        An explosion function that causes an explosion animation
+        based on the x and y coordinates.
+        """
+        # Make the explosion
+        explosion = Tanks.Explosion(self.explosion_texture_list)
+
+        # Move it to location of the enemy tank
+        explosion.center_x = x
+        explosion.center_y = y
+
+        # Add to list of explosion sprites
+        self.explosions_list.append(explosion)
+        explosion.update()
 
 
 def main():
