@@ -164,6 +164,7 @@ class TankGame(arcade.Window):
                         width=Tanks.SCREEN_WIDTH,
                         align="center")
             
+            
     def update_player(self):
         # Apply forces to push player in direction of arrow keys
         # Set friction to 0 temporarily to make the player move faster
@@ -187,8 +188,8 @@ class TankGame(arcade.Window):
         if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
             self.physics_engine.set_friction(self.player_sprite, 1.0)
         
+        
     def update_enemies(self, delta_time):
-        # 
         for enemy in self.enemy_list:
             if isinstance(enemy, Tanks.EnemyTank):
                 enemy.player_x = self.player_sprite.center_x
@@ -232,22 +233,14 @@ class TankGame(arcade.Window):
                     if enemy.cooldown < 0:
                         enemy.can_shoot = True
         
+        
     def update_explodables(self, delta_time):
         # Update all the enemy tanks to know where the player is
         for mine in self.mine_list:
             if mine.timer(delta_time) >= mine.end_time:
 
-                # Make the explosion
-                explosion = Tanks.Explosion(self.explosion_texture_list)
-
                 # Move it to location of the mine
-                explosion.center_x = mine.center_x
-                explosion.center_y = mine.center_y
-
-                # Add to list of explosion sprites
-                self.explosions_list.append(explosion)
-
-                explosion.update()
+                self.explosion_animation(mine.center_x, mine.center_y)
 
                 # Remove the mine from the sprite list
                 mine.remove_from_sprite_lists()
@@ -258,17 +251,13 @@ class TankGame(arcade.Window):
         for bullet in self.bullet_list:
             hit_list = arcade.check_for_collision_with_list(bullet, self.enemy_list)
 
+            # For every enemy that the player has hit, explode them
             for enemy in hit_list:
-                # Make the explosion
-                explosion = Tanks.Explosion(self.explosion_texture_list)
 
-                # Move it to location of the enemy tank
-                explosion.center_x = enemy.center_x
-                explosion.center_y = enemy.center_y
+                # Move it to the location of the enemy x and y
+                self.explosion_animation(enemy.center_x, enemy.center_y)
 
-                # Add to list of explosion sprites
-                self.explosions_list.append(explosion)
-                explosion.update()
+                # Add exploded enemy to exploded tank list
                 self.exploded_tank_list.append(enemy.exploded)
 
                 # Remove the enemy tank and the bullet
@@ -327,6 +316,7 @@ class TankGame(arcade.Window):
         self.exploded_tank_list.update()
         self.mine_list.update()
     
+        # order might matter
         self.update_player()
         self.update_enemies(delta_time)
         self.update_explodables(delta_time)
@@ -436,6 +426,22 @@ class TankGame(arcade.Window):
         Not implemented yet.
         """
         pass
+
+    def explosion_animation(self, x, y):
+        """
+        An explosion function that causes an explosion animation
+        based on the x and y coordinates.
+        """
+        # Make the explosion
+        explosion = Tanks.Explosion(self.explosion_texture_list)
+
+        # Move it to location of the parameter x and y
+        explosion.center_x = x
+        explosion.center_y = y
+
+        # Add to list of explosion sprites
+        self.explosions_list.append(explosion)
+        explosion.update()
 
 
 def main():
