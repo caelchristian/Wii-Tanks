@@ -56,7 +56,6 @@ class EnemyTank(arcade.Sprite):
     
     def __init__(self, tank_image, turret_image, exploded_tank_image, scale=1):
         super().__init__(tank_image, scale, hit_box_algorithm="Simple")
-        self.bullet_list = arcade.SpriteList()
         self.turret = arcade.Sprite(turret_image, scale)
         self.exploded = arcade.Sprite(exploded_tank_image, scale)
         self.player_x = 0
@@ -97,9 +96,6 @@ class EnemyTank(arcade.Sprite):
             self.turret.angle = np.degrees(np.arctan(height / width)) + 90
         elif width < 0:
             self.turret.angle = np.degrees(np.arctan(height / width)) + 270
-            
-        # update bullet list
-        self.bullet_list.update()
 
             
 class Explosion(arcade.Sprite):
