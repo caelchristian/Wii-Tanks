@@ -199,48 +199,25 @@ class TankGame(arcade.Window):
             delta_time (float): time passed since last update
         """
         for enemy in self.enemy_list:
-            if isinstance(enemy, Tanks.EnemyTank):
-                enemy.player_x = self.player_sprite.center_x
-                enemy.player_y = self.player_sprite.center_y
-            
-                if enemy.can_shoot:
-                    # Make bullet
-                    bullet = Tanks.Bullet("assets/bulletDark1_outline.png", 1)
-
-                    # Get distances from enemy to player
-                    x_diff = enemy.player_x - enemy.center_x
-                    y_diff = enemy.player_y - enemy.center_y
-                    # Get angle of bullet
-                    angle = math.atan2(y_diff, x_diff)
-                    bullet.angle = math.degrees(angle) - 90
-
-                    # Offset so the bullet doesn't start inside the tank
-                    bullet.center_x = enemy.center_x + math.cos(angle) * 60
-                    bullet.center_y = enemy.center_y + math.sin(angle) * 60
-
-                    # Apply force to the bullet using the physics engine
-                    self.physics_engine.add_sprite(bullet,
-                                                        friction=0.1,
-                                                        mass = 0.5,
-                                                        damping = 1,
-                                                        collision_type = "bullet",
-                                                        moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
-                                                        elasticity = 1.0)
-                    self.physics_engine.apply_force(bullet, (0, Tanks.BULLET_MOVE_FORCE))
+            enemy.player_x = self.player_sprite.center_x
+            enemy.player_y = self.player_sprite.center_y
+        
+            if enemy.can_shoot:
+                self.shoot_bullet(start_x = enemy.center_x,
+                                start_y = enemy.center_y,
+                                target_x = enemy.player_x,
+                                target_y = enemy.player_y)
                     
-                    # Add the bullet to the sprite list to be drawn
-                    self.bullet_list.append(bullet)
-                    
-                    # Reset the cooldown
-                    enemy.cooldown = Tanks.ENEMY_SHOOT_COOLDOWN
-                    enemy.can_shoot = False
-                    
-                    
-                else:
-                    # Enemy on cooldown, reduce the cooldown
-                    enemy.cooldown -= delta_time
-                    if enemy.cooldown < 0:
-                        enemy.can_shoot = True
+                # Reset the shoot cooldown
+                enemy.cooldown = Tanks.ENEMY_SHOOT_COOLDOWN
+                enemy.can_shoot = False
+                
+                
+            else:
+                # Enemy on cooldown, reduce the cooldown
+                enemy.cooldown -= delta_time
+                if enemy.cooldown < 0:
+                    enemy.can_shoot = True
         
         
     def update_mines(self, delta_time):
@@ -405,42 +382,16 @@ class TankGame(arcade.Window):
         """
         # If the turret is in a obstacle, don't shoot a bullet
         hit_list = arcade.check_for_collision_with_list(self.player_sprite.turret, self.obstacle_list)
-        if len(hit_list) > 0:
-            return None
-        
-        if self.player_sprite.can_shoot:
-            # Make bullet
-            bullet = Tanks.Bullet("assets/bulletDark1_outline.png", 1)
-
-            # Position bullet at player's location
-            start_x = self.player_sprite.center_x
-            start_y = self.player_sprite.center_y
-
-            # Angle the bullet travels
-            x_diff = x - start_x
-            y_diff = y - start_y
-            angle = math.atan2(y_diff, x_diff)
-            bullet.angle = math.degrees(angle) - 90
-
-            # Offset so the bullet doesn't start inside the player tank
-            bullet.center_x = start_x + math.cos(angle) * 65
-            bullet.center_y = start_y + math.sin(angle) * 65
-
-            # Apply force to the bullet using the physics engine
-            self.physics_engine.add_sprite(bullet,
-                                                friction=0.1,
-                                                mass = 0.5,
-                                                damping = 1,
-                                                collision_type = "bullet",
-                                                moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
-                                                elasticity = 1.0)
-            self.physics_engine.apply_force(bullet, (0, Tanks.BULLET_MOVE_FORCE))
-            
-            # Add the bullet to the sprite list to be drawn
-            self.bullet_list.append(bullet)
-            
-            self.player_sprite.cooldown = 1
-            self.player_sprite.can_shoot = False
+        if len(hit_list) == 0:
+            if self.player_sprite.can_shoot:
+                self.shoot_bullet(start_x = self.player_sprite.center_x,
+                                  start_y = self.player_sprite.center_y,
+                                  target_x = x,
+                                  target_y = y)
+                
+                # Reset the players cooldown
+                self.player_sprite.cooldown = Tanks.PLAYER_SHOOT_COOLDOWN
+                self.player_sprite.can_shoot = False
 
 
     def on_mouse_release(self, x, y, button, key_modifiers):
@@ -465,6 +416,33 @@ class TankGame(arcade.Window):
         # Add to list of explosion sprites
         self.explosions_list.append(explosion)
         explosion.update()
+    
+    def shoot_bullet(self, start_x, start_y, target_x, target_y):
+        # Make bullet
+        bullet = Tanks.Bullet("assets/bulletDark1_outline.png", 1)
+
+        # Angle the bullet travels
+        x_diff = target_x - start_x
+        y_diff = target_y - start_y
+        angle = math.atan2(y_diff, x_diff)
+        bullet.angle = math.degrees(angle) - 90
+
+        # Offset so the bullet doesn't start inside the tank
+        bullet.center_x = start_x + math.cos(angle) * 65
+        bullet.center_y = start_y + math.sin(angle) * 65
+
+        # Apply force to the bullet using the physics engine
+        self.physics_engine.add_sprite(bullet,
+                                            friction=0.1,
+                                            mass = 0.5,
+                                            damping = 1,
+                                            collision_type = "bullet",
+                                            moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+                                            elasticity = 1.0)
+        self.physics_engine.apply_force(bullet, (0, Tanks.BULLET_MOVE_FORCE))
+        
+        # Add the bullet to the sprite list to be drawn
+        self.bullet_list.append(bullet)
 
 
 def main():
