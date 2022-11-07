@@ -44,6 +44,9 @@ class TankGame(arcade.Window):
         self.game_over = False
         self.physics_engine = None
         self.explosion_texture_list = []
+        self.level_num = 0
+        self.level_num_max = 2
+        
 
         # Keypress tracking variables
         self.left_pressed: bool = False
@@ -57,11 +60,49 @@ class TankGame(arcade.Window):
 
     def setup(self):
         """ 
-        Setup the sprite lists and place the sprites on the screen
+        Initialize sprite lists, load next tilemap, and place the sprites on the screen.
         """
         # Load the sprites for the first level
-        self.load_next_level()
+        # Initialize all sprite lists to empty
+        self.bullet_list = arcade.SpriteList()
+        self.enemy_list = arcade.SpriteList()
+        self.enemy_turret_list = arcade.SpriteList()
+        self.player_list = arcade.SpriteList()
+        self.explosions_list = arcade.SpriteList()
+        self.obstacle_list = arcade.SpriteList()
+        self.exploded_tank_list = arcade.SpriteList()
+        self.mine_list = arcade.SpriteList()
+        
+        # increment level number
+        self.level_num += 1
+        
+        # Load level from the tilemap
+        layer_options = {"Obstacles" : {"use_spatial_hash": True},
+                        "Enemies" : {"use_spatial_hash": True}}
+        
+        tile_map = arcade.load_tilemap(f"maps/level{self.level_num}.tmx", layer_options=layer_options)
 
+        # Load data from tilemap layers
+        self.obstacle_list = tile_map.sprite_lists["Obstacles"]
+        enemy_tiles = tile_map.sprite_lists["Enemies"]
+        player_tile = tile_map.sprite_lists["Player"][0]
+        
+        # Create enemy tank objects with locations from the tilemap
+        for tile in enemy_tiles:
+            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", .8)
+            self.enemy_sprite.center_x = tile.center_x
+            self.enemy_sprite.center_y = tile.center_y
+            self.enemy_list.append(self.enemy_sprite)
+            self.enemy_turret_list.append(self.enemy_sprite.turret)
+        
+        # Create the player tank object and set its coordinates
+        self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", .8)
+        self.player_sprite.center_x = player_tile.center_x
+        self.player_sprite.center_y = player_tile.center_y
+        self.player_sprite.angle = 180
+        self.player_list.append(self.player_sprite)
+        self.player_list.append(self.player_sprite.turret)
+        
         # Create the physics engine and add the player and obstacles sprites to it
         self.physics_engine = arcade.PymunkPhysicsEngine(damping=0.0001,
                                                          gravity=(0,0))
@@ -78,46 +119,8 @@ class TankGame(arcade.Window):
                                             collision_type="wall",
                                             elasticity = 1.0,
                                             body_type=arcade.PymunkPhysicsEngine.STATIC)
+    
 
-    def load_next_level(self):
-        """Clears all sprites and loads the next level of the game.
-        """
-        # Initialize all sprite lists to empty
-        self.bullet_list = arcade.SpriteList()
-        self.enemy_list = arcade.SpriteList()
-        self.enemy_turret_list = arcade.SpriteList()
-        self.player_list = arcade.SpriteList()
-        self.explosions_list = arcade.SpriteList()
-        self.obstacle_list = arcade.SpriteList()
-        self.exploded_tank_list = arcade.SpriteList()
-        self.mine_list = arcade.SpriteList()
-
-        # Load level from the tilemap
-        layer_options = {"Obstacles" : {"use_spatial_hash": True},
-                        "Enemies" : {"use_spatial_hash": True}}
-        
-        tile_map = arcade.load_tilemap("maps/level.tmx", layer_options=layer_options)
-
-        # Load data from tilemap layers
-        self.obstacle_list = tile_map.sprite_lists["Obstacles"]
-        enemy_tiles = tile_map.sprite_lists["Enemies"]
-        player_tile = tile_map.sprite_lists["Player"][0]
-        
-        # Create enemy tank objects with locations from the tilemap
-        for tile in enemy_tiles:
-            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", 1)
-            self.enemy_sprite.center_x = tile.center_x
-            self.enemy_sprite.center_y = tile.center_y
-            self.enemy_list.append(self.enemy_sprite)
-            self.enemy_turret_list.append(self.enemy_sprite.turret)
-        
-        # Create the player tank object and set its coordinates
-        self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", 1)
-        self.player_sprite.center_x = player_tile.center_x
-        self.player_sprite.center_y = player_tile.center_y
-        self.player_sprite.angle = 180
-        self.player_list.append(self.player_sprite)
-        self.player_list.append(self.player_sprite.turret)
 
     def on_draw(self):
         """
@@ -313,8 +316,19 @@ class TankGame(arcade.Window):
         if len(self.enemy_list) == 0 or self.player_dead:
             self.end_level_time -= delta_time
 
+        # if transition time over
         if self.end_level_time < 0:
-            self.game_over = True
+            # if player is dead, end game
+            if self.player_dead:
+                self.game_over = True
+            # else if player hasn't beat final level
+            elif self.level_num < self.level_num_max:
+                # enemies are dead, reset end level time and load next level
+                self.end_level_time = 1
+                self.setup()
+            # else player has won
+            else:
+                self.game_over = True
             
         if not self.player_sprite.can_shoot:
             # Player shoot on cooldown, remove delta time
@@ -422,9 +436,9 @@ class TankGame(arcade.Window):
             angle = math.atan2(y_diff, x_diff)
             bullet.angle = math.degrees(angle) - 90
 
-            # Offset so the bullet doesn't start inside the player tank
-            bullet.center_x = start_x + math.cos(angle) * 65
-            bullet.center_y = start_y + math.sin(angle) * 65
+            # Offset so the bullet doesn't start inside the player tank (constant in pixels)
+            bullet.center_x = start_x + math.cos(angle) * 60
+            bullet.center_y = start_y + math.sin(angle) * 60
 
             # Apply force to the bullet using the physics engine
             self.physics_engine.add_sprite(bullet,
