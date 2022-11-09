@@ -60,6 +60,7 @@ class EnemyTank(arcade.Sprite):
         self.exploded = arcade.Sprite(exploded_tank_image, scale)
         self.player_x = 0
         self.player_y = 0
+        self.path = []
         self.can_shoot = False
         self.cooldown = ENEMY_SHOOT_COOLDOWN
 
@@ -167,6 +168,8 @@ class Mine(arcade.Sprite):
     def timer(self, delta_time):
         self.total_time += delta_time
         return self.total_time
+
+
 
 
 
