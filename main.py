@@ -48,6 +48,7 @@ class TankGame(arcade.Window):
         self.level_num = 0
         self.level_num_max = 2
         
+        self.astar_barrier_list = None
 
         # Keypress tracking variables
         self.left_pressed: bool = False
@@ -121,6 +122,18 @@ class TankGame(arcade.Window):
                                             elasticity = 1.0,
                                             body_type=arcade.PymunkPhysicsEngine.STATIC)
     
+
+        self.astar_barrier_list = arcade.AStarBarrierList(moving_sprite=self.player_sprite,
+                                                          blocking_sprites=self.obstacle_list,
+                                                          grid_size=56,
+                                                          left=0,
+                                                          right=Tanks.SCREEN_WIDTH,
+                                                          bottom=0,
+                                                          top=Tanks.SCREEN_HEIGHT)
+        
+        self.physics_engine.add_sprite_list(self.enemy_list,
+                                            mass=1.0,
+                                            collision_type="player")
 
 
     def on_draw(self):
@@ -228,7 +241,7 @@ class TankGame(arcade.Window):
             if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
                 self.physics_engine.set_friction(self.player_sprite, 1.0)
 
-        
+
     def update_enemies(self, delta_time):
         """ Updates enemies and causes them to shoot bullets
 
@@ -238,8 +251,13 @@ class TankGame(arcade.Window):
         for enemy in self.enemy_list:
             enemy.player_x = self.player_sprite.center_x
             enemy.player_y = self.player_sprite.center_y
-        
-            if enemy.can_shoot:
+
+            enemy.path = arcade.astar_calculate_path(enemy.position,
+                                                self.player_sprite.position,
+                                                self.astar_barrier_list,
+                                                diagonal_movement=False)
+
+            if enemy.can_shoot and arcade.has_line_of_sight(enemy.position, self.player_sprite.position, walls=self.obstacle_list):
                 self.shoot_bullet(start_x = enemy.center_x,
                                 start_y = enemy.center_y,
                                 target_x = enemy.player_x,
@@ -255,6 +273,7 @@ class TankGame(arcade.Window):
                 enemy.cooldown -= delta_time
                 if enemy.cooldown < 0:
                     enemy.can_shoot = True
+        
         
         
     def update_mines(self, delta_time):
