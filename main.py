@@ -193,14 +193,14 @@ class TankGame(arcade.Window):
             if self.down_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (0, Tanks.PLAYER_MOVE_FORCE))
                 self.physics_engine.set_friction(self.player_sprite, 0)
-
+                """
                 # Add tracks sprite at the correct angle and behind the player sprite
-                # self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
-                #self.tracks_sprite.angle = 180
-                #self.tracks_sprite.center_x = self.player_sprite.center_x
-                #self.tracks_sprite.center_y = self.player_sprite.center_y + 10
-                #self.tracks_list.append(self.tracks_sprite)
-                
+                self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
+                self.tracks_sprite.angle = 180
+                self.tracks_sprite.center_x = self.player_sprite.center_x
+                self.tracks_sprite.center_y = self.player_sprite.center_y + 10
+                self.tracks_list.append(self.tracks_sprite)
+                """
 
             if self.left_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (Tanks.PLAYER_MOVE_FORCE, 0))
@@ -212,7 +212,7 @@ class TankGame(arcade.Window):
                 self.tracks_sprite.center_y = self.player_sprite.center_y
                 self.tracks_list.append(self.tracks_sprite)
                 """
-            
+
             if self.right_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (-Tanks.PLAYER_MOVE_FORCE, 0))
                 self.physics_engine.set_friction(self.player_sprite, 0)
@@ -263,6 +263,32 @@ class TankGame(arcade.Window):
         # Reduce the time to explosion for all mines
         for mine in self.mine_list:
             if mine.timer(delta_time) >= mine.end_time:
+                
+                for enemy in self.enemy_list:
+                    mine_death_enemy = arcade.check_for_collision(enemy, mine)
+                    if mine_death_enemy:
+                        # Move it to the location of the enemy x and y
+                        self.explosion_animation(enemy.center_x, enemy.center_y)
+
+                        # Add exploded enemy to exploded tank list
+                        self.exploded_tank_list.append(enemy.exploded)
+
+                        # Remove the enemy tank
+                        enemy.remove_from_sprite_lists()
+                        enemy.turret.remove_from_sprite_lists()
+                        self.tanks_destroyed += 1
+
+                mine_death_player = arcade.check_for_collision(mine, self.player_sprite)
+                if mine_death_player:
+                    # Move it to the location of the player
+                    self.explosion_animation(self.player_sprite.center_x, self.player_sprite.center_y)
+
+                    # Remove the player tank
+                    self.player_sprite.remove_from_sprite_lists()
+                    self.player_sprite.turret.remove_from_sprite_lists()
+                    # user doesn't win by default
+                    self.player_dead = True
+
 
                 # Move it to location of the mine
                 self.explosion_animation(mine.center_x, mine.center_y)
@@ -297,7 +323,7 @@ class TankGame(arcade.Window):
                 # Move it to the location of the player
                 self.explosion_animation(self.player_sprite.center_x, self.player_sprite.center_y)
 
-                # Remove the enemy tank and the bullet
+                # Remove the player tank and the bullet
                 self.player_sprite.remove_from_sprite_lists()
                 self.player_sprite.turret.remove_from_sprite_lists()
                 bullet.remove_from_sprite_lists()
