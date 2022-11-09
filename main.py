@@ -95,21 +95,21 @@ class TankGame(arcade.Window):
         
         # Create enemy tank objects with locations from the tilemap
         for tile in easy_enemy_tiles:
-            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", .8)
+            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlack_barrel_rotate.png", "assets/barricadeMetal.png", .8)
             self.enemy_sprite.center_x = tile.center_x
             self.enemy_sprite.center_y = tile.center_y
             self.enemy_list.append(self.enemy_sprite)
             self.enemy_turret_list.append(self.enemy_sprite.turret)
             
         for tile in medium_enemy_tiles:
-            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_green.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", .8)
+            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_green.png", "assets/tankBlack_barrel_rotate.png", "assets/barricadeMetal.png", .8)
             self.enemy_sprite.center_x = tile.center_x
             self.enemy_sprite.center_y = tile.center_y
             self.enemy_list.append(self.enemy_sprite)
             self.enemy_turret_list.append(self.enemy_sprite.turret)
             
         for tile in hard_enemy_tiles:
-            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_dark.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", .8)
+            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_dark.png", "assets/tankBlack_barrel_rotate.png", "assets/barricadeMetal.png", .8)
             self.enemy_sprite.center_x = tile.center_x
             self.enemy_sprite.center_y = tile.center_y
             self.enemy_list.append(self.enemy_sprite)
