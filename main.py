@@ -262,50 +262,7 @@ class TankGame(arcade.Window):
             enemy.player_x = self.player_sprite.center_x
             enemy.player_y = self.player_sprite.center_y
 
-
-            if enemy.path is None or enemy.path == [] or enemy.path_idx > len(enemy.path) - 1:
-                enemy.path_idx = 0
-                enemy.path = arcade.astar_calculate_path(enemy.position,
-                                                self.player_sprite.position,
-                                                self.astar_barrier_list,
-                                                diagonal_movement=False)
-            
-
-
-
-            # Keep path the same until you reach the end
-            # If we are "at" the first element in the list
-            # Go to the next one, keep track of which path idx we at
-            if enemy.path is None:
-                num = random.randint(0,3)
-                if num == 0:
-                    self.physics_engine.apply_force(enemy, (-500, 0))
-                elif num == 1:
-                    self.physics_engine.apply_force(enemy, (500, 0))
-                elif num == 2:
-                    self.physics_engine.apply_force(enemy, (0, -500))
-                else:
-                    self.physics_engine.apply_force(enemy, (0, 500))
-            else:
-                x, y = enemy.path[enemy.path_idx]
-                
-                x_diff = enemy.center_x - x
-                y_diff = enemy.center_y - y
-                if(abs(x_diff) < 10 and abs(y_diff) < 10):
-                    enemy.path_idx += 1
-                else:
-
-                    if(abs(x_diff) >= 10):
-                        if x_diff > 0:
-                            self.physics_engine.apply_force(enemy, (-500, 0))
-                        else:
-                            self.physics_engine.apply_force(enemy, (500, 0))
-                    else:
-                        if y_diff > 0:
-                            self.physics_engine.apply_force(enemy, (0, -500))
-                        else:
-                            self.physics_engine.apply_force(enemy, (0, 500))
-            
+            enemy.move(self.physics_engine, self.astar_barrier_list, self.player_sprite.position)
 
             # Shoot bullet if the player tank is in sight of the enemy
             if enemy.can_shoot and arcade.has_line_of_sight(enemy.position, self.player_sprite.position, walls=self.obstacle_list):

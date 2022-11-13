@@ -96,13 +96,47 @@ class EnemyTank(arcade.Sprite):
         elif width < 0:
             self.turret.angle = np.degrees(np.arctan(height / width)) + 270
     
-    def move(self):
+    def move(self, physics_engine, barrier_list, player_position):
         if(self.difficulty == Difficulty.EASY):
-            self.cooldown = EASY_ENEMY_SHOOT_COOLDOWN
+            pass
         elif(self.difficulty == Difficulty.MEDIUM):
-            self.cooldown = MEDIUM_ENEMY_SHOOT_COOLDOWN
+            #TODO: Random movement for medium
+            pass
         elif(self.difficulty == Difficulty.HARD):
-            self.cooldown = HARD_ENEMY_SHOOT_COOLDOWN
+            if self.path is None or self.path == [] or self.path_idx > len(self.path) - 1:
+                self.path_idx = 0
+                self.path = arcade.astar_calculate_path(self.position,
+                                                player_position,
+                                                barrier_list,
+                                                diagonal_movement=False)
+            
+
+
+
+            # Keep path the same until you reach the end
+            # If we are "at" the first element in the list
+            # Go to the next one, keep track of which path idx we at
+            if self.path is None:
+                pass
+            else:
+                x, y = self.path[self.path_idx]
+                
+                x_diff = self.center_x - x
+                y_diff = self.center_y - y
+                if(abs(x_diff) < 10 and abs(y_diff) < 10):
+                    self.path_idx += 1
+                else:
+
+                    if(abs(x_diff) >= 10):
+                        if x_diff > 0:
+                            physics_engine.apply_force(self, (-500, 0))
+                        else:
+                            physics_engine.apply_force(self, (500, 0))
+                    else:
+                        if y_diff > 0:
+                            physics_engine.apply_force(self, (0, -500))
+                        else:
+                            physics_engine.apply_force(self, (0, 500))
 
             
 class Explosion(arcade.Sprite):
