@@ -14,18 +14,27 @@ EXPLOSION_TEXTURE_COUNT = 60
 PLAYER_MOVE_FORCE = 1500
 BULLET_MOVE_FORCE = 8000
 PLAYER_SHOOT_COOLDOWN = 1
-ENEMY_SHOOT_COOLDOWN = 5
+EASY_ENEMY_SHOOT_COOLDOWN = 7
+MEDIUM_ENEMY_SHOOT_COOLDOWN = 5
+HARD_ENEMY_SHOOT_COOLDOWN = 3 
 MINE_EXPLODE_TIME = 10
 MAX_RICOCHETS = 2
+EXPLODED_TANK_IMAGE = "assets/barricadeMetal.png"
+ENEMY_TANK_BARREL = "assets/tankBlack_barrel_rotate.png"
+
+class Difficulty(Enum):
+    EASY = 1
+    MEDIUM = 2
+    HARD = 3
 
 class PlayerTank(arcade.Sprite):
     """
     Player Tank Class. Inherits from arcade.Sprite to allow setting textures
     """
-    def __init__(self, tank_image, turret_image, exploded_tank_image, scale=1):
+    def __init__(self, tank_image, turret_image, scale=1):
         super().__init__(tank_image, scale, hit_box_algorithm="Simple")
         self.turret = arcade.Sprite(turret_image, scale)
-        self.exploded = arcade.Sprite(exploded_tank_image, scale)
+        self.exploded = arcade.Sprite(EXPLODED_TANK_IMAGE, scale)
         self.target_x = 0
         self.target_y = 0
         self.can_shoot = False
@@ -54,32 +63,21 @@ class EnemyTank(arcade.Sprite):
     Parent class of all enemy tanks. Inherits from arcade.Sprite to allow setting textures
     """
     
-    def __init__(self, tank_image, turret_image, exploded_tank_image, scale=1):
+    def __init__(self, tank_image, difficulty, cooldown, scale=1):
         super().__init__(tank_image, scale, hit_box_algorithm="Simple")
-        self.turret = arcade.Sprite(turret_image, scale)
-        self.exploded = arcade.Sprite(exploded_tank_image, scale)
+        self.turret = arcade.Sprite(ENEMY_TANK_BARREL, scale)
+        self.exploded = arcade.Sprite(EXPLODED_TANK_IMAGE, scale)
         self.player_x = 0
         self.player_y = 0
         self.path = []
+        self.path_idx = 0
+        self.difficulty = difficulty
         self.can_shoot = False
-        self.cooldown = ENEMY_SHOOT_COOLDOWN
+        self.cooldown = cooldown
 
     
     def update(self):
         """ Move the turret to point at player tank.
-        Eventually this will update depending on enemy tank's
-        attribute's. Tanks will not be able to see through walls.
-        
-        Enums:
-            Color: Brown, Grey, Teal, Yellow, Red, Green, Purple, White, Black
-            First appearance: Mission #
-            Movement: Stationary, Slow, Normal, Fast
-            Behaviour: Passive, Defensive, Active, Incautious, Offensive
-            Bullet speed: Slow, Normal, Fast
-            Fire rate: Slow, Normal, Fast
-            Max Bullets 1-5
-            Max Mines: 2-4
-            Ricochets: 0-2
         """
         
         # Turret always stays with the tank
@@ -97,6 +95,14 @@ class EnemyTank(arcade.Sprite):
             self.turret.angle = np.degrees(np.arctan(height / width)) + 90
         elif width < 0:
             self.turret.angle = np.degrees(np.arctan(height / width)) + 270
+    
+    def move(self):
+        if(self.difficulty == Difficulty.EASY):
+            self.cooldown = EASY_ENEMY_SHOOT_COOLDOWN
+        elif(self.difficulty == Difficulty.MEDIUM):
+            self.cooldown = MEDIUM_ENEMY_SHOOT_COOLDOWN
+        elif(self.difficulty == Difficulty.HARD):
+            self.cooldown = HARD_ENEMY_SHOOT_COOLDOWN
 
             
 class Explosion(arcade.Sprite):

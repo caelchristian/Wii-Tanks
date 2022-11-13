@@ -7,6 +7,7 @@ Authored by: Cael Christian, Levi Putman, Olivia Wilson
 import arcade
 import Tanks
 import math
+import random
 
 class TankGame(arcade.Window):
     """
@@ -95,28 +96,16 @@ class TankGame(arcade.Window):
         
         # Create enemy tank objects with locations from the tilemap
         for tile in easy_enemy_tiles:
-            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlack_barrel_rotate.png", "assets/barricadeMetal.png", .8)
-            self.enemy_sprite.center_x = tile.center_x
-            self.enemy_sprite.center_y = tile.center_y
-            self.enemy_list.append(self.enemy_sprite)
-            self.enemy_turret_list.append(self.enemy_sprite.turret)
+            self.add_enemy_tank(tile.center_x, tile.center_y, Tanks.Difficulty.EASY)
             
         for tile in medium_enemy_tiles:
-            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_green.png", "assets/tankBlack_barrel_rotate.png", "assets/barricadeMetal.png", .8)
-            self.enemy_sprite.center_x = tile.center_x
-            self.enemy_sprite.center_y = tile.center_y
-            self.enemy_list.append(self.enemy_sprite)
-            self.enemy_turret_list.append(self.enemy_sprite.turret)
+            self.add_enemy_tank(tile.center_x, tile.center_y, Tanks.Difficulty.MEDIUM)
             
         for tile in hard_enemy_tiles:
-            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_dark.png", "assets/tankBlack_barrel_rotate.png", "assets/barricadeMetal.png", .8)
-            self.enemy_sprite.center_x = tile.center_x
-            self.enemy_sprite.center_y = tile.center_y
-            self.enemy_list.append(self.enemy_sprite)
-            self.enemy_turret_list.append(self.enemy_sprite.turret)
+            self.add_enemy_tank(tile.center_x, tile.center_y, Tanks.Difficulty.HARD)
         
         # Create the player tank object and set its coordinates
-        self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", .8)
+        self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue.png", "assets/tankBlue_barrel_rotate.png", .8)
         self.player_sprite.center_x = player_tile.center_x
         self.player_sprite.center_y = player_tile.center_y
         self.player_sprite.angle = 180
@@ -144,14 +133,17 @@ class TankGame(arcade.Window):
         self.astar_barrier_list = arcade.AStarBarrierList(moving_sprite=self.player_sprite,
                                                           blocking_sprites=self.obstacle_list,
                                                           grid_size=56,
-                                                          left=0,
+                                                          left=-112,
                                                           right=Tanks.SCREEN_WIDTH,
-                                                          bottom=0,
+                                                          bottom=-112,
                                                           top=Tanks.SCREEN_HEIGHT)
         
-        self.physics_engine.add_sprite_list(self.enemy_list,
-                                            mass=1.0,
-                                            collision_type="player")
+        for enemy in self.enemy_list:
+            self.physics_engine.add_sprite(enemy,
+                                       mass=1.0,
+                                       friction=1.0,
+                                       moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+                                       collision_type="player")
 
 
     def on_draw(self):
@@ -270,21 +262,64 @@ class TankGame(arcade.Window):
             enemy.player_x = self.player_sprite.center_x
             enemy.player_y = self.player_sprite.center_y
 
-            enemy.path = arcade.astar_calculate_path(enemy.position,
+
+            if enemy.path is None or enemy.path == [] or enemy.path_idx > len(enemy.path) - 1:
+                enemy.path_idx = 0
+                enemy.path = arcade.astar_calculate_path(enemy.position,
                                                 self.player_sprite.position,
                                                 self.astar_barrier_list,
                                                 diagonal_movement=False)
+            
 
+
+
+            # Keep path the same until you reach the end
+            # If we are "at" the first element in the list
+            # Go to the next one, keep track of which path idx we at
+            if enemy.path is None:
+                num = random.randint(0,3)
+                if num == 0:
+                    self.physics_engine.apply_force(enemy, (-500, 0))
+                elif num == 1:
+                    self.physics_engine.apply_force(enemy, (500, 0))
+                elif num == 2:
+                    self.physics_engine.apply_force(enemy, (0, -500))
+                else:
+                    self.physics_engine.apply_force(enemy, (0, 500))
+            else:
+                x, y = enemy.path[enemy.path_idx]
+                
+                x_diff = enemy.center_x - x
+                y_diff = enemy.center_y - y
+                if(abs(x_diff) < 10 and abs(y_diff) < 10):
+                    enemy.path_idx += 1
+                else:
+
+                    if(abs(x_diff) >= 10):
+                        if x_diff > 0:
+                            self.physics_engine.apply_force(enemy, (-500, 0))
+                        else:
+                            self.physics_engine.apply_force(enemy, (500, 0))
+                    else:
+                        if y_diff > 0:
+                            self.physics_engine.apply_force(enemy, (0, -500))
+                        else:
+                            self.physics_engine.apply_force(enemy, (0, 500))
+            
+
+            # Shoot bullet if the player tank is in sight of the enemy
             if enemy.can_shoot and arcade.has_line_of_sight(enemy.position, self.player_sprite.position, walls=self.obstacle_list):
-                self.shoot_bullet(start_x = enemy.center_x,
-                                start_y = enemy.center_y,
-                                target_x = enemy.player_x,
-                                target_y = enemy.player_y)
+                self.shoot_bullet(enemy.center_x, enemy.center_y, enemy.player_x, enemy.player_y)
                     
                 # Reset the shoot cooldown
-                enemy.cooldown = Tanks.ENEMY_SHOOT_COOLDOWN
-                enemy.can_shoot = False
-                
+                if(enemy.difficulty == Tanks.Difficulty.EASY):
+                    enemy.cooldown = Tanks.EASY_ENEMY_SHOOT_COOLDOWN
+                elif(enemy.difficulty == Tanks.Difficulty.MEDIUM):
+                    enemy.cooldown = Tanks.MEDIUM_ENEMY_SHOOT_COOLDOWN
+                elif(enemy.difficulty == Tanks.Difficulty.HARD):
+                    enemy.cooldown = Tanks.HARD_ENEMY_SHOOT_COOLDOWN
+
+                enemy.can_shoot = False                
                 
             else:
                 # Enemy on cooldown, reduce the cooldown
@@ -555,6 +590,24 @@ class TankGame(arcade.Window):
         
         # Add the bullet to the sprite list to be drawn
         self.bullet_list.append(bullet)
+    
+    def add_enemy_tank(self, x, y, difficulty):
+        
+        if(difficulty == Tanks.Difficulty.EASY):
+            image = "assets/tankBody_red.png"
+            cooldown = Tanks.EASY_ENEMY_SHOOT_COOLDOWN
+        elif(difficulty == Tanks.Difficulty.MEDIUM):
+            image = "assets/tankBody_green.png"
+            cooldown = Tanks.MEDIUM_ENEMY_SHOOT_COOLDOWN
+        elif(difficulty == Tanks.Difficulty.HARD):
+            image = "assets/tankBody_dark.png"
+            cooldown = Tanks.HARD_ENEMY_SHOOT_COOLDOWN
+
+        self.enemy_sprite = Tanks.EnemyTank(image, difficulty, cooldown, 1)
+        self.enemy_sprite.center_x = x
+        self.enemy_sprite.center_y = y
+        self.enemy_list.append(self.enemy_sprite)
+        self.enemy_turret_list.append(self.enemy_sprite.turret)
 
 
 def main():
