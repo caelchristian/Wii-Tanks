@@ -80,18 +80,36 @@ class TankGame(arcade.Window):
         
         # Load level from the tilemap
         layer_options = {"Obstacles" : {"use_spatial_hash": True},
-                        "Enemies" : {"use_spatial_hash": True}}
+                        "Easy Enemies" : {"use_spatial_hash": True},
+                        "Medium Enemies" : {"use_spatial_hash": True},
+                        "Hard Enemies" : {"use_spatial_hash": True}}
         
         tile_map = arcade.load_tilemap(f"maps/level{self.level_num}.tmx", layer_options=layer_options)
 
         # Load data from tilemap layers
         self.obstacle_list = tile_map.sprite_lists["Obstacles"]
-        enemy_tiles = tile_map.sprite_lists["Enemies"]
+        easy_enemy_tiles = tile_map.sprite_lists["Easy Enemies"]
+        medium_enemy_tiles = tile_map.sprite_lists["Medium Enemies"]
+        hard_enemy_tiles = tile_map.sprite_lists["Hard Enemies"]
         player_tile = tile_map.sprite_lists["Player"][0]
         
         # Create enemy tank objects with locations from the tilemap
-        for tile in enemy_tiles:
-            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", .8)
+        for tile in easy_enemy_tiles:
+            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlack_barrel_rotate.png", "assets/barricadeMetal.png", .8)
+            self.enemy_sprite.center_x = tile.center_x
+            self.enemy_sprite.center_y = tile.center_y
+            self.enemy_list.append(self.enemy_sprite)
+            self.enemy_turret_list.append(self.enemy_sprite.turret)
+            
+        for tile in medium_enemy_tiles:
+            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_green.png", "assets/tankBlack_barrel_rotate.png", "assets/barricadeMetal.png", .8)
+            self.enemy_sprite.center_x = tile.center_x
+            self.enemy_sprite.center_y = tile.center_y
+            self.enemy_list.append(self.enemy_sprite)
+            self.enemy_turret_list.append(self.enemy_sprite.turret)
+            
+        for tile in hard_enemy_tiles:
+            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_dark.png", "assets/tankBlack_barrel_rotate.png", "assets/barricadeMetal.png", .8)
             self.enemy_sprite.center_x = tile.center_x
             self.enemy_sprite.center_y = tile.center_y
             self.enemy_list.append(self.enemy_sprite)
