@@ -184,58 +184,71 @@ class TankGame(arcade.Window):
                         align="center")
             
 
-    def update_player(self):
+    def update_player(self, delta_time):
         """ 
         Moves the player according to keys pressed
         """
+        # Set cooldown variable for the tracks
+        tracks_cooldown = 3
         # Apply forces to push player in direction of arrow keys
         # Set friction to 0 temporarily to make the player move faster
         if self.player_sprite in self.player_list:
             if self.up_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (0, -Tanks.PLAYER_MOVE_FORCE))
                 self.physics_engine.set_friction(self.player_sprite, 0)
-                """
+                
                 # Add tracks sprite at the correct angle and behind the player sprite
                 self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
                 self.tracks_sprite.angle = 180
                 self.tracks_sprite.center_x = self.player_sprite.center_x
                 self.tracks_sprite.center_y = self.player_sprite.center_y - 10
-                self.tracks_list.append(self.tracks_sprite)
-                """
+
+                tracks_cooldown -= delta_time
+                if tracks_cooldown < 0:
+                    self.tracks_list.append(self.tracks_sprite)
+                
 
             if self.down_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (0, Tanks.PLAYER_MOVE_FORCE))
                 self.physics_engine.set_friction(self.player_sprite, 0)
-                """
+
                 # Add tracks sprite at the correct angle and behind the player sprite
                 self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
                 self.tracks_sprite.angle = 180
                 self.tracks_sprite.center_x = self.player_sprite.center_x
                 self.tracks_sprite.center_y = self.player_sprite.center_y + 10
-                self.tracks_list.append(self.tracks_sprite)
-                """
+                tracks_cooldown -= delta_time
+                if tracks_cooldown < 0:
+                    self.tracks_list.append(self.tracks_sprite)
+                
 
             if self.left_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (Tanks.PLAYER_MOVE_FORCE, 0))
                 self.physics_engine.set_friction(self.player_sprite, 0)
-                """
+                
                 # Add tracks sprite at the correct angle and behind the player sprite
                 self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)   
                 self.tracks_sprite.center_x = self.player_sprite.center_x + 10
                 self.tracks_sprite.center_y = self.player_sprite.center_y
-                self.tracks_list.append(self.tracks_sprite)
-                """
+                tracks_cooldown -= delta_time
+                if tracks_cooldown < 0:
+                    self.tracks_list.append(self.tracks_sprite)
+                
+                
 
             if self.right_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (-Tanks.PLAYER_MOVE_FORCE, 0))
                 self.physics_engine.set_friction(self.player_sprite, 0)
-                """
+                
                 # Add tracks sprite at the correct angle and behind the player sprite
                 self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
                 self.tracks_sprite.center_x = self.player_sprite.center_x - 10
                 self.tracks_sprite.center_y = self.player_sprite.center_y
-                self.tracks_list.append(self.tracks_sprite)
-                """
+                tracks_cooldown -= delta_time
+                if tracks_cooldown < 0:
+                    self.tracks_list.append(self.tracks_sprite)
+                
+                
 
             # If no keys are pressed, set the friction to 1 to slow the tank down
             if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
@@ -282,6 +295,8 @@ class TankGame(arcade.Window):
         # Reduce the time to explosion for all mines
         for mine in self.mine_list:
             if mine.timer(delta_time) >= mine.end_time:
+                # Move it to location of the mine
+                self.explosion_animation(mine.center_x, mine.center_y)
                 
                 for enemy in self.enemy_list:
                     mine_death_enemy = arcade.check_for_collision(enemy, mine)
@@ -308,9 +323,6 @@ class TankGame(arcade.Window):
                     # user doesn't win by default
                     self.player_dead = True
 
-
-                # Move it to location of the mine
-                self.explosion_animation(mine.center_x, mine.center_y)
 
                 # Remove the mine from the sprite list
                 mine.remove_from_sprite_lists()
@@ -411,7 +423,7 @@ class TankGame(arcade.Window):
         self.mine_list.update()
     
         # Call all custom update functions
-        self.update_player()
+        self.update_player(delta_time)
         self.update_enemies(delta_time)
         self.update_mines(delta_time)
         self.update_delta_time(delta_time)
