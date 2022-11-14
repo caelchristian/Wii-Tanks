@@ -61,6 +61,43 @@ class TankGame(arcade.Window):
         # Load the explosions from the sprite sheet
         self.explosion_texture_list = arcade.load_spritesheet(file_name="assets/explosions_sheet.png", sprite_width=130, sprite_height=130, columns=5, count=5)
 
+        # load sounds
+        self.load_sounds()
+        
+    def load_sounds(self):
+        # main sfx
+        self.shoot1 = arcade.load_sound("sounds/shoot1.wav")
+        self.shoot2 = arcade.load_sound("sounds/shoot2.wav")
+        self.move1 = arcade.load_sound("sounds/move1.wav")
+        self.move2 = arcade.load_sound("sounds/move2.wav")
+        self.move3 = arcade.load_sound("sounds/move3.wav")
+        self.move4 = arcade.load_sound("sounds/move4.wav")
+        self.explode1 = arcade.load_sound("sounds/explode1.wav")
+        self.explode2 = arcade.load_sound("sounds/explode2.wav")
+        self.richochet1 = arcade.load_sound("sounds/richochet1.wav")
+        self.richochet2 = arcade.load_sound("sounds/richochet2.wav")
+        
+        # game sfx
+        self.whistle = arcade.load_sound("sounds/whistle.wav")
+        self.round_start = arcade.load_sound("sounds/Round Win.mp3")
+        self.round_fail = arcade.load_sound("sounds/Round Failure.mp3")
+        self.round_win = arcade.load_sound("sounds/Round Win.mp3")
+        self.round_fail = arcade.load_sound("sounds/Round Failure.mp3")
+        self.results = arcade.load_sound("sounds/Results.mp3")
+        self.round_fail = arcade.load_sound("sounds/Round Failure.mp3")
+        
+        # music
+        self.variation1 = arcade.load_sound("sounds/Variation 1.mp3")
+        self.variation2 = arcade.load_sound("sounds/Variation 2.mp3")
+        self.variation3 = arcade.load_sound("sounds/Variation 3.mp3")
+        self.variation4 = arcade.load_sound("sounds/Variation 4.mp3")
+        self.variation5 = arcade.load_sound("sounds/Variation 5.mp3")
+        self.variation6 = arcade.load_sound("sounds/Variation 6.mp3")
+        self.variation7 = arcade.load_sound("sounds/Variation 7.mp3")
+        self.variation8 = arcade.load_sound("sounds/Variation 8.mp3")
+        self.variation9 = arcade.load_sound("sounds/Variation 9.mp3")
+        
+        
     def setup(self):
         """ 
         Initialize sprite lists, load next tilemap, and place the sprites on the screen.
@@ -281,7 +318,7 @@ class TankGame(arcade.Window):
             enemy.player_x = self.player_sprite.center_x
             enemy.player_y = self.player_sprite.center_y
 
-            enemy.move(self.physics_engine, self.astar_barrier_list, self.player_sprite.position)
+            enemy.move(self.physics_engine, self.astar_barrier_list, self.player_sprite.position, self.obstacle_list)
 
             # Shoot bullet if the player tank is in sight of the enemy
             if enemy.can_shoot and arcade.has_line_of_sight(enemy.position, self.player_sprite.position, walls=self.obstacle_list):
@@ -295,7 +332,7 @@ class TankGame(arcade.Window):
                 elif(enemy.difficulty == Tanks.Difficulty.HARD):
                     enemy.cooldown = Tanks.HARD_ENEMY_SHOOT_COOLDOWN
 
-                enemy.can_shoot = False                
+                enemy.can_shoot = False
                 
             else:
                 # Enemy on cooldown, reduce the cooldown
@@ -571,7 +608,9 @@ class TankGame(arcade.Window):
         
         # Add the bullet to the sprite list to be drawn
         self.bullet_list.append(bullet)
-    
+        
+        arcade.play_sound(self.shoot2)
+            
     def add_enemy_tank(self, x, y, difficulty):
         
         if(difficulty == Tanks.Difficulty.EASY):
