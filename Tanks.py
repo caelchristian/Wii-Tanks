@@ -20,7 +20,7 @@ MEDIUM_ENEMY_SHOOT_COOLDOWN = 5
 HARD_ENEMY_SHOOT_COOLDOWN = 3 
 MINE_EXPLODE_TIME = 10
 MAX_RICOCHETS = 2
-MOVE_COOLDOWN = 1
+MOVE_COOLDOWN = .5
 EXPLODED_TANK_IMAGE = "assets/barricadeMetal.png"
 ENEMY_TANK_BARREL = "assets/tankBlack_barrel_rotate.png"
 
@@ -77,7 +77,7 @@ class EnemyTank(arcade.Sprite):
         self.can_shoot = False
         self.cooldown = cooldown
         self.move_cooldown = MOVE_COOLDOWN
-        self.random_int = 0
+        self.move_rand_int = 0
 
     
     def update(self):
@@ -100,32 +100,34 @@ class EnemyTank(arcade.Sprite):
         elif width < 0:
             self.turret.angle = np.degrees(np.arctan(height / width)) + 270
     
-    def move(self, physics_engine, barrier_list, player_position):
+    def move(self, physics_engine, barrier_list, player_position, obstacle_list):
         if(self.difficulty == Difficulty.EASY):
             pass
         elif(self.difficulty == Difficulty.MEDIUM):
             #TODO: Random movement for medium
             
             if self.move_cooldown < 0:
-                self.random_int = random.randint(1,5)
+                self.move_rand_int = random.randint(1,5)
                 self.move_cooldown = MOVE_COOLDOWN
                 
+                if arcade.check_for_collision_with_list(self,obstacle_list):
+                    # tank is most likely hitting wall, change x or y direction
+                    self.move_rand_int = {1 : 2, 2 : 1, 3 : 4, 4 : 3, 5: 5}[self.move_rand_int]
+                    print(self.move_rand_int)
+                
             # move up
-            if self.random_int == 1:
+            if self.move_rand_int == 1:
                 physics_engine.apply_force(self, (0, 500))
             # move down
-            if self.random_int == 2:
+            if self.move_rand_int == 2:
                 physics_engine.apply_force(self, (0, -500))
             # move left
-            if self.random_int == 3:
+            if self.move_rand_int == 3:
                 physics_engine.apply_force(self, (-500, 0))
             # move right
-            if self.random_int == 4:
-                physics_engine.apply_force(self, (0, 500))
+            if self.move_rand_int == 4:
+                physics_engine.apply_force(self, (500, 0))
                 
-            
-            
-            pass
         elif(self.difficulty == Difficulty.HARD):
             if self.path is None or self.path == [] or self.path_idx > len(self.path) - 1:
                 self.path_idx = 0
