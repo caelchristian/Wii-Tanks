@@ -5,6 +5,7 @@ Tanks.py contains constants and classes used for the Tanks Game
 from enum import Enum
 import arcade
 import numpy as np
+import random
 
 # Constants
 SCREEN_WIDTH = 1120
@@ -19,6 +20,7 @@ MEDIUM_ENEMY_SHOOT_COOLDOWN = 5
 HARD_ENEMY_SHOOT_COOLDOWN = 3 
 MINE_EXPLODE_TIME = 10
 MAX_RICOCHETS = 2
+MOVE_COOLDOWN = 1
 EXPLODED_TANK_IMAGE = "assets/barricadeMetal.png"
 ENEMY_TANK_BARREL = "assets/tankBlack_barrel_rotate.png"
 
@@ -74,6 +76,8 @@ class EnemyTank(arcade.Sprite):
         self.difficulty = difficulty
         self.can_shoot = False
         self.cooldown = cooldown
+        self.move_cooldown = MOVE_COOLDOWN
+        self.random_int = 0
 
     
     def update(self):
@@ -101,6 +105,26 @@ class EnemyTank(arcade.Sprite):
             pass
         elif(self.difficulty == Difficulty.MEDIUM):
             #TODO: Random movement for medium
+            
+            if self.move_cooldown < 0:
+                self.random_int = random.randint(1,5)
+                self.move_cooldown = MOVE_COOLDOWN
+                
+            # move up
+            if self.random_int == 1:
+                physics_engine.apply_force(self, (0, 500))
+            # move down
+            if self.random_int == 2:
+                physics_engine.apply_force(self, (0, -500))
+            # move left
+            if self.random_int == 3:
+                physics_engine.apply_force(self, (-500, 0))
+            # move right
+            if self.random_int == 4:
+                physics_engine.apply_force(self, (0, 500))
+                
+            
+            
             pass
         elif(self.difficulty == Difficulty.HARD):
             if self.path is None or self.path == [] or self.path_idx > len(self.path) - 1:

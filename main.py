@@ -302,6 +302,8 @@ class TankGame(arcade.Window):
                 enemy.cooldown -= delta_time
                 if enemy.cooldown < 0:
                     enemy.can_shoot = True
+                    
+            enemy.move_cooldown -= delta_time
         
         
         
