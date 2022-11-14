@@ -126,7 +126,7 @@ class Bullet(arcade.Sprite):
     Bullet class. Inherits from arcade.Sprite to allow setting textures
     """
     def __init__(self, bullet_image, scale=1):
-        super().__init__(bullet_image, scale, hit_box_algorithm="Simple")
+        super().__init__(bullet_image, scale, hit_box_algorithm=None)
         self.num_ricochets = 0
 
     # Remove the bullet sprite if it has bounced too many times
@@ -145,7 +145,7 @@ class Obstacle(arcade.Sprite):
             image_source (str): file path of the sprite image
             scale (int, optional): scales the sprite. Defaults to 1.
         """
-        super().__init__(image_source, scale, hit_box_algorithm="Simple")
+        super().__init__(image_source, scale, hit_box_algorithm=None)
         self.explodable = explodable
 
 

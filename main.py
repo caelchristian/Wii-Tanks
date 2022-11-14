@@ -27,6 +27,7 @@ class TankGame(arcade.Window):
 
         # Set the background color
         arcade.set_background_color(arcade.color.WHEAT)
+        self.set_mouse_visible(False)
 
         # Initialize sprite lists
         self.player_list = None
@@ -123,6 +124,11 @@ class TankGame(arcade.Window):
         self.player_list.append(self.player_sprite)
         self.player_list.append(self.player_sprite.turret)
         
+        # Add the crosshair
+        self.crosshair_sprite = arcade.Sprite("assets/crosshair.png", 0.1)
+        self.crosshair_sprite.center_x = 200
+        self.crosshair_sprite.center_y = 200
+        
         # Create the physics engine and add the player and obstacles sprites to it
         self.physics_engine = arcade.PymunkPhysicsEngine(damping=0.0001,
                                                          gravity=(0,0))
@@ -172,7 +178,7 @@ class TankGame(arcade.Window):
             self.player_list.draw()
             self.explosions_list.draw()
             self.obstacle_list.draw()
-
+            self.crosshair_sprite.draw()
             
 
             # Draw the scoreboard
@@ -498,6 +504,10 @@ class TankGame(arcade.Window):
         # Set the target of the player's turret to the mouse location
         self.player_sprite.target_x = x
         self.player_sprite.target_y = y
+        
+        # Set crosshair to follow mouse location
+        self.crosshair_sprite.center_x = x
+        self.crosshair_sprite.center_y = y
 
 
     def on_mouse_press(self, x, y, button, key_modifiers):
@@ -543,7 +553,7 @@ class TankGame(arcade.Window):
     
     def shoot_bullet(self, start_x, start_y, target_x, target_y):
         # Make bullet
-        bullet = Tanks.Bullet("assets/bulletDark1_outline.png", 1)
+        bullet = Tanks.Bullet("assets/bullet.png", 0.35)
 
         # Angle the bullet travels
         x_diff = target_x - start_x
