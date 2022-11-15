@@ -5,6 +5,7 @@ Tanks.py contains constants and classes used for the Tanks Game
 from enum import Enum
 import arcade
 import numpy as np
+import random
 
 # Constants
 SCREEN_WIDTH = 1120
@@ -14,18 +15,28 @@ EXPLOSION_TEXTURE_COUNT = 60
 PLAYER_MOVE_FORCE = 1500
 BULLET_MOVE_FORCE = 8000
 PLAYER_SHOOT_COOLDOWN = 1
-ENEMY_SHOOT_COOLDOWN = 5
+EASY_ENEMY_SHOOT_COOLDOWN = 7
+MEDIUM_ENEMY_SHOOT_COOLDOWN = 5
+HARD_ENEMY_SHOOT_COOLDOWN = 3 
 MINE_EXPLODE_TIME = 10
 MAX_RICOCHETS = 2
+MOVE_COOLDOWN = .5
+EXPLODED_TANK_IMAGE = "assets/barricadeMetal.png"
+ENEMY_TANK_BARREL = "assets/tankBlack_barrel_rotate.png"
+
+class Difficulty(Enum):
+    EASY = 1
+    MEDIUM = 2
+    HARD = 3
 
 class PlayerTank(arcade.Sprite):
     """
     Player Tank Class. Inherits from arcade.Sprite to allow setting textures
     """
-    def __init__(self, tank_image, turret_image, exploded_tank_image, scale=1):
+    def __init__(self, tank_image, turret_image, scale=1):
         super().__init__(tank_image, scale, hit_box_algorithm="Simple")
         self.turret = arcade.Sprite(turret_image, scale)
-        self.exploded = arcade.Sprite(exploded_tank_image, scale)
+        self.exploded = arcade.Sprite(EXPLODED_TANK_IMAGE, scale)
         self.target_x = 0
         self.target_y = 0
         self.can_shoot = False
@@ -54,32 +65,23 @@ class EnemyTank(arcade.Sprite):
     Parent class of all enemy tanks. Inherits from arcade.Sprite to allow setting textures
     """
     
-    def __init__(self, tank_image, turret_image, exploded_tank_image, scale=1):
+    def __init__(self, tank_image, difficulty, cooldown, scale=1):
         super().__init__(tank_image, scale, hit_box_algorithm="Simple")
-        self.turret = arcade.Sprite(turret_image, scale)
-        self.exploded = arcade.Sprite(exploded_tank_image, scale)
+        self.turret = arcade.Sprite(ENEMY_TANK_BARREL, scale)
+        self.exploded = arcade.Sprite(EXPLODED_TANK_IMAGE, scale)
         self.player_x = 0
         self.player_y = 0
         self.path = []
+        self.path_idx = 0
+        self.difficulty = difficulty
         self.can_shoot = False
-        self.cooldown = ENEMY_SHOOT_COOLDOWN
+        self.cooldown = cooldown
+        self.move_cooldown = MOVE_COOLDOWN
+        self.move_rand_int = 0
 
     
     def update(self):
         """ Move the turret to point at player tank.
-        Eventually this will update depending on enemy tank's
-        attribute's. Tanks will not be able to see through walls.
-        
-        Enums:
-            Color: Brown, Grey, Teal, Yellow, Red, Green, Purple, White, Black
-            First appearance: Mission #
-            Movement: Stationary, Slow, Normal, Fast
-            Behaviour: Passive, Defensive, Active, Incautious, Offensive
-            Bullet speed: Slow, Normal, Fast
-            Fire rate: Slow, Normal, Fast
-            Max Bullets 1-5
-            Max Mines: 2-4
-            Ricochets: 0-2
         """
         
         # Turret always stays with the tank
@@ -97,6 +99,71 @@ class EnemyTank(arcade.Sprite):
             self.turret.angle = np.degrees(np.arctan(height / width)) + 90
         elif width < 0:
             self.turret.angle = np.degrees(np.arctan(height / width)) + 270
+    
+    def move(self, physics_engine, barrier_list, player_position, obstacle_list):
+        if(self.difficulty == Difficulty.EASY):
+            # EASY tanks do not move
+            pass
+        elif(self.difficulty == Difficulty.MEDIUM):
+            #TODO: Random movement for medium
+            
+            if self.move_cooldown < 0:
+                self.move_rand_int = random.randint(1,5)
+                self.move_cooldown = MOVE_COOLDOWN
+                
+                if arcade.check_for_collision_with_list(self,obstacle_list):
+                    # tank is most likely hitting wall, change x or y direction
+                    self.move_rand_int = {1 : 2, 2 : 1, 3 : 4, 4 : 3, 5: 5}[self.move_rand_int]
+                    print(self.move_rand_int)
+                
+            # move up
+            if self.move_rand_int == 1:
+                physics_engine.apply_force(self, (0, 500))
+            # move down
+            if self.move_rand_int == 2:
+                physics_engine.apply_force(self, (0, -500))
+            # move left
+            if self.move_rand_int == 3:
+                physics_engine.apply_force(self, (-500, 0))
+            # move right
+            if self.move_rand_int == 4:
+                physics_engine.apply_force(self, (500, 0))
+                
+        elif(self.difficulty == Difficulty.HARD):
+            if self.path is None or self.path == [] or self.path_idx > len(self.path) - 1:
+                self.path_idx = 0
+                self.path = arcade.astar_calculate_path(self.position,
+                                                player_position,
+                                                barrier_list,
+                                                diagonal_movement=False)
+            
+
+
+
+            # Keep path the same until you reach the end
+            # If we are "at" the first element in the list
+            # Go to the next one, keep track of which path idx we at
+            if self.path is None:
+                pass
+            else:
+                x, y = self.path[self.path_idx]
+                
+                x_diff = self.center_x - x
+                y_diff = self.center_y - y
+                if(abs(x_diff) < 10 and abs(y_diff) < 10):
+                    self.path_idx += 1
+                else:
+
+                    if(abs(x_diff) >= 10):
+                        if x_diff > 0:
+                            physics_engine.apply_force(self, (-500, 0))
+                        else:
+                            physics_engine.apply_force(self, (500, 0))
+                    else:
+                        if y_diff > 0:
+                            physics_engine.apply_force(self, (0, -500))
+                        else:
+                            physics_engine.apply_force(self, (0, 500))
 
             
 class Explosion(arcade.Sprite):
@@ -126,7 +193,7 @@ class Bullet(arcade.Sprite):
     Bullet class. Inherits from arcade.Sprite to allow setting textures
     """
     def __init__(self, bullet_image, scale=1):
-        super().__init__(bullet_image, scale, hit_box_algorithm="Simple")
+        super().__init__(bullet_image, scale, hit_box_algorithm=None)
         self.num_ricochets = 0
 
     # Remove the bullet sprite if it has bounced too many times
@@ -145,7 +212,7 @@ class Obstacle(arcade.Sprite):
             image_source (str): file path of the sprite image
             scale (int, optional): scales the sprite. Defaults to 1.
         """
-        super().__init__(image_source, scale, hit_box_algorithm="Simple")
+        super().__init__(image_source, scale, hit_box_algorithm=None)
         self.explodable = explodable
 
 
