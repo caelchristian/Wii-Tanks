@@ -60,6 +60,43 @@ class TankGame(arcade.Window):
         # Load the explosions from the sprite sheet
         self.explosion_texture_list = arcade.load_spritesheet(file_name="assets/explosions_sheet.png", sprite_width=130, sprite_height=130, columns=5, count=5)
 
+        # load sounds
+        self.load_sounds()
+        
+    def load_sounds(self):
+        # main sfx
+        self.shoot1 = arcade.load_sound("sounds/shoot1.wav")
+        self.shoot2 = arcade.load_sound("sounds/shoot2.wav")
+        self.move1 = arcade.load_sound("sounds/move1.wav")
+        self.move2 = arcade.load_sound("sounds/move2.wav")
+        self.move3 = arcade.load_sound("sounds/move3.wav")
+        self.move4 = arcade.load_sound("sounds/move4.wav")
+        self.explode1 = arcade.load_sound("sounds/explode1.wav")
+        self.explode2 = arcade.load_sound("sounds/explode2.wav")
+        self.richochet1 = arcade.load_sound("sounds/richochet1.wav")
+        self.richochet2 = arcade.load_sound("sounds/richochet2.wav")
+        
+        # game sfx
+        self.whistle = arcade.load_sound("sounds/whistle.wav")
+        self.round_start = arcade.load_sound("sounds/Round Win.mp3")
+        self.round_fail = arcade.load_sound("sounds/Round Failure.mp3")
+        self.round_win = arcade.load_sound("sounds/Round Win.mp3")
+        self.round_fail = arcade.load_sound("sounds/Round Failure.mp3")
+        self.results = arcade.load_sound("sounds/Results.mp3")
+        self.round_fail = arcade.load_sound("sounds/Round Failure.mp3")
+        
+        # music
+        self.variation1 = arcade.load_sound("sounds/Variation 1.mp3")
+        self.variation2 = arcade.load_sound("sounds/Variation 2.mp3")
+        self.variation3 = arcade.load_sound("sounds/Variation 3.mp3")
+        self.variation4 = arcade.load_sound("sounds/Variation 4.mp3")
+        self.variation5 = arcade.load_sound("sounds/Variation 5.mp3")
+        self.variation6 = arcade.load_sound("sounds/Variation 6.mp3")
+        self.variation7 = arcade.load_sound("sounds/Variation 7.mp3")
+        self.variation8 = arcade.load_sound("sounds/Variation 8.mp3")
+        self.variation9 = arcade.load_sound("sounds/Variation 9.mp3")
+        
+        
     def setup(self):
         """ 
         Initialize sprite lists, load next tilemap, and place the sprites on the screen.
@@ -96,28 +133,16 @@ class TankGame(arcade.Window):
         
         # Create enemy tank objects with locations from the tilemap
         for tile in easy_enemy_tiles:
-            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_red.png", "assets/tankBlack_barrel_rotate.png", "assets/barricadeMetal.png", .8)
-            self.enemy_sprite.center_x = tile.center_x
-            self.enemy_sprite.center_y = tile.center_y
-            self.enemy_list.append(self.enemy_sprite)
-            self.enemy_turret_list.append(self.enemy_sprite.turret)
+            self.add_enemy_tank(tile.center_x, tile.center_y, Tanks.Difficulty.EASY)
             
         for tile in medium_enemy_tiles:
-            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_green.png", "assets/tankBlack_barrel_rotate.png", "assets/barricadeMetal.png", .8)
-            self.enemy_sprite.center_x = tile.center_x
-            self.enemy_sprite.center_y = tile.center_y
-            self.enemy_list.append(self.enemy_sprite)
-            self.enemy_turret_list.append(self.enemy_sprite.turret)
+            self.add_enemy_tank(tile.center_x, tile.center_y, Tanks.Difficulty.MEDIUM)
             
         for tile in hard_enemy_tiles:
-            self.enemy_sprite = Tanks.EnemyTank("assets/tankBody_dark.png", "assets/tankBlack_barrel_rotate.png", "assets/barricadeMetal.png", .8)
-            self.enemy_sprite.center_x = tile.center_x
-            self.enemy_sprite.center_y = tile.center_y
-            self.enemy_list.append(self.enemy_sprite)
-            self.enemy_turret_list.append(self.enemy_sprite.turret)
+            self.add_enemy_tank(tile.center_x, tile.center_y, Tanks.Difficulty.HARD)
         
         # Create the player tank object and set its coordinates
-        self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue.png", "assets/tankBlue_barrel_rotate.png", "assets/barricadeMetal.png", .8)
+        self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue.png", "assets/tankBlue_barrel_rotate.png", .8)
         self.player_sprite.center_x = player_tile.center_x
         self.player_sprite.center_y = player_tile.center_y
         self.player_sprite.angle = 180
@@ -150,14 +175,17 @@ class TankGame(arcade.Window):
         self.astar_barrier_list = arcade.AStarBarrierList(moving_sprite=self.player_sprite,
                                                           blocking_sprites=self.obstacle_list,
                                                           grid_size=56,
-                                                          left=0,
+                                                          left=-112,
                                                           right=Tanks.SCREEN_WIDTH,
-                                                          bottom=0,
+                                                          bottom=-112,
                                                           top=Tanks.SCREEN_HEIGHT)
         
-        self.physics_engine.add_sprite_list(self.enemy_list,
-                                            mass=1.0,
-                                            collision_type="player")
+        for enemy in self.enemy_list:
+            self.physics_engine.add_sprite(enemy,
+                                       mass=1.0,
+                                       friction=1.0,
+                                       moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
+                                       collision_type="player")
 
 
     def on_draw(self):
@@ -289,27 +317,29 @@ class TankGame(arcade.Window):
             enemy.player_x = self.player_sprite.center_x
             enemy.player_y = self.player_sprite.center_y
 
-            enemy.path = arcade.astar_calculate_path(enemy.position,
-                                                self.player_sprite.position,
-                                                self.astar_barrier_list,
-                                                diagonal_movement=False)
+            enemy.move(self.physics_engine, self.astar_barrier_list, self.player_sprite.position, self.obstacle_list)
 
+            # Shoot bullet if the player tank is in sight of the enemy
             if enemy.can_shoot and arcade.has_line_of_sight(enemy.position, self.player_sprite.position, walls=self.obstacle_list):
-                self.shoot_bullet(start_x = enemy.center_x,
-                                start_y = enemy.center_y,
-                                target_x = enemy.player_x,
-                                target_y = enemy.player_y)
+                self.shoot_bullet(enemy.center_x, enemy.center_y, enemy.player_x, enemy.player_y)
                     
                 # Reset the shoot cooldown
-                enemy.cooldown = Tanks.ENEMY_SHOOT_COOLDOWN
+                if(enemy.difficulty == Tanks.Difficulty.EASY):
+                    enemy.cooldown = Tanks.EASY_ENEMY_SHOOT_COOLDOWN
+                elif(enemy.difficulty == Tanks.Difficulty.MEDIUM):
+                    enemy.cooldown = Tanks.MEDIUM_ENEMY_SHOOT_COOLDOWN
+                elif(enemy.difficulty == Tanks.Difficulty.HARD):
+                    enemy.cooldown = Tanks.HARD_ENEMY_SHOOT_COOLDOWN
+
                 enemy.can_shoot = False
-                
                 
             else:
                 # Enemy on cooldown, reduce the cooldown
                 enemy.cooldown -= delta_time
                 if enemy.cooldown < 0:
                     enemy.can_shoot = True
+                    
+            enemy.move_cooldown -= delta_time
         
         
         
@@ -577,6 +607,26 @@ class TankGame(arcade.Window):
         
         # Add the bullet to the sprite list to be drawn
         self.bullet_list.append(bullet)
+        
+        arcade.play_sound(self.shoot2)
+            
+    def add_enemy_tank(self, x, y, difficulty):
+        
+        if(difficulty == Tanks.Difficulty.EASY):
+            image = "assets/tankBody_red.png"
+            cooldown = Tanks.EASY_ENEMY_SHOOT_COOLDOWN
+        elif(difficulty == Tanks.Difficulty.MEDIUM):
+            image = "assets/tankBody_green.png"
+            cooldown = Tanks.MEDIUM_ENEMY_SHOOT_COOLDOWN
+        elif(difficulty == Tanks.Difficulty.HARD):
+            image = "assets/tankBody_dark.png"
+            cooldown = Tanks.HARD_ENEMY_SHOOT_COOLDOWN
+
+        self.enemy_sprite = Tanks.EnemyTank(image, difficulty, cooldown, 1)
+        self.enemy_sprite.center_x = x
+        self.enemy_sprite.center_y = y
+        self.enemy_list.append(self.enemy_sprite)
+        self.enemy_turret_list.append(self.enemy_sprite.turret)
 
 
 def main():
