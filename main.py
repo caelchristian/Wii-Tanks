@@ -7,7 +7,6 @@ Authored by: Cael Christian, Levi Putman, Olivia Wilson
 import arcade
 import Tanks
 import math
-import random
 
 class TankGame(arcade.Window):
     """

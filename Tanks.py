@@ -102,6 +102,7 @@ class EnemyTank(arcade.Sprite):
     
     def move(self, physics_engine, barrier_list, player_position, obstacle_list):
         if(self.difficulty == Difficulty.EASY):
+            # EASY tanks do not move
             pass
         elif(self.difficulty == Difficulty.MEDIUM):
             #TODO: Random movement for medium
