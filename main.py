@@ -257,7 +257,7 @@ class TankGame(arcade.Window):
                     self.tracks_list.append(self.tracks_sprite)
 
                     # Reset the track cooldown
-                    self.player_sprite.track_cooldown = 3
+                    self.player_sprite.track_cooldown = 0.3
                     self.player_sprite.can_track = False
 
                 else:
@@ -279,7 +279,7 @@ class TankGame(arcade.Window):
                     self.tracks_list.append(self.tracks_sprite)
 
                     # Reset the track cooldown
-                    self.player_sprite.track_cooldown = 3
+                    self.player_sprite.track_cooldown = 0.3
                     self.player_sprite.can_track = False
 
                 else:
@@ -294,12 +294,13 @@ class TankGame(arcade.Window):
                 if self.player_sprite.can_track:
                     # Add tracks sprite at the correct angle and behind the player sprite
                     self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)   
+                    self.tracks_sprite.angle = 90
                     self.tracks_sprite.center_x = self.player_sprite.center_x + 10
                     self.tracks_sprite.center_y = self.player_sprite.center_y
                     self.tracks_list.append(self.tracks_sprite)
 
                     # Reset the track cooldown
-                    self.player_sprite.track_cooldown = 3
+                    self.player_sprite.track_cooldown = 0.3
                     self.player_sprite.can_track = False
 
                 else:
@@ -314,12 +315,13 @@ class TankGame(arcade.Window):
                 if self.player_sprite.can_track:
                     # Add tracks sprite at the correct angle and behind the player sprite
                     self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
+                    self.tracks_sprite.angle = 90
                     self.tracks_sprite.center_x = self.player_sprite.center_x - 10
                     self.tracks_sprite.center_y = self.player_sprite.center_y
                     self.tracks_list.append(self.tracks_sprite)
 
                     # Reset the track cooldown
-                    self.player_sprite.track_cooldown = 3
+                    self.player_sprite.track_cooldown = 0.3
                     self.player_sprite.can_track = False
 
                 else:
@@ -367,7 +369,6 @@ class TankGame(arcade.Window):
             enemy.move_cooldown -= delta_time
         
         
-        
     def update_mines(self, delta_time):
         """ Updates the mine objects
         """
@@ -413,7 +414,6 @@ class TankGame(arcade.Window):
 
                         #Remove the obstacle
                         obstacle.remove_from_sprite_lists()
-
 
                 # Remove the mine from the sprite list
                 mine.remove_from_sprite_lists()
