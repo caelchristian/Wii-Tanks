@@ -240,7 +240,7 @@ class TankGame(arcade.Window):
         """ 
         Moves the player according to keys pressed
         """
-        # Set cooldown variable for the tracks
+        # Set cooldown variables for the tracks
         tracks_cooldown = 3
         can_track = False
 
@@ -381,8 +381,8 @@ class TankGame(arcade.Window):
                 self.explosion_animation(mine.center_x, mine.center_y)
                 
                 for enemy in self.enemy_list:
-                    mine_death_enemy = arcade.check_for_collision(enemy, mine)
-                    if mine_death_enemy:
+                    mine_death_enemy_list = arcade.check_for_collision_with_list(enemy, self.explosions_list)
+                    for mine in mine_death_enemy_list:
                         # Move it to the location of the enemy x and y
                         self.explosion_animation(enemy.center_x, enemy.center_y)
 
@@ -394,8 +394,8 @@ class TankGame(arcade.Window):
                         enemy.turret.remove_from_sprite_lists()
                         self.tanks_destroyed += 1
 
-                mine_death_player = arcade.check_for_collision(mine, self.player_sprite)
-                if mine_death_player:
+                mine_death_player_list = arcade.check_for_collision_with_lists(self.explosions_list, self.player_sprite)
+                for mine in mine_death_player_list:
                     # Move it to the location of the player
                     self.explosion_animation(self.player_sprite.center_x, self.player_sprite.center_y)
 
@@ -404,6 +404,18 @@ class TankGame(arcade.Window):
                     self.player_sprite.turret.remove_from_sprite_lists()
                     # user doesn't win by default
                     self.player_dead = True
+
+
+                obstacle_explosion_list = arcade.check_for_collision_with_lists(self.explosions_list, self.obstacle_list)
+
+                for obstacle in obstacle_explosion_list:
+                    
+                    if obstacle.explodable:
+                        # Move it to the location of the obstacle
+                        self.explosion_animation(obstacle.center_x, self.obstacle.center_y)
+
+                        #Remove the obstacle
+                        obstacle.remove_from_sprite_lists()
 
 
                 # Remove the mine from the sprite list
