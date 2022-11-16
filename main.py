@@ -78,23 +78,23 @@ class TankGame(arcade.Window):
         
         # game sfx
         self.whistle = arcade.load_sound("sounds/whistle.wav")
-        self.round_start = arcade.load_sound("sounds/Round Win.mp3")
-        self.round_fail = arcade.load_sound("sounds/Round Failure.mp3")
-        self.round_win = arcade.load_sound("sounds/Round Win.mp3")
-        self.round_fail = arcade.load_sound("sounds/Round Failure.mp3")
-        self.results = arcade.load_sound("sounds/Results.mp3")
-        self.round_fail = arcade.load_sound("sounds/Round Failure.mp3")
+        self.round_start = arcade.load_sound("sounds/Round Win.wav")
+        self.round_fail = arcade.load_sound("sounds/Round Failure.wav")
+        self.round_win = arcade.load_sound("sounds/Round Win.wav")
+        self.round_fail = arcade.load_sound("sounds/Round Failure.wav")
+        self.results = arcade.load_sound("sounds/Results.wav")
+        self.round_fail = arcade.load_sound("sounds/Round Failure.wav")
         
         # music
-        self.variation1 = arcade.load_sound("sounds/Variation 1.mp3")
-        self.variation2 = arcade.load_sound("sounds/Variation 2.mp3")
-        self.variation3 = arcade.load_sound("sounds/Variation 3.mp3")
-        self.variation4 = arcade.load_sound("sounds/Variation 4.mp3")
-        self.variation5 = arcade.load_sound("sounds/Variation 5.mp3")
-        self.variation6 = arcade.load_sound("sounds/Variation 6.mp3")
-        self.variation7 = arcade.load_sound("sounds/Variation 7.mp3")
-        self.variation8 = arcade.load_sound("sounds/Variation 8.mp3")
-        self.variation9 = arcade.load_sound("sounds/Variation 9.mp3")
+        self.variation1 = arcade.load_sound("sounds/Variation 1.wav")
+        self.variation2 = arcade.load_sound("sounds/Variation 2.wav")
+        self.variation3 = arcade.load_sound("sounds/Variation 3.wav")
+        self.variation4 = arcade.load_sound("sounds/Variation 4.wav")
+        self.variation5 = arcade.load_sound("sounds/Variation 5.wav")
+        self.variation6 = arcade.load_sound("sounds/Variation 6.wav")
+        self.variation7 = arcade.load_sound("sounds/Variation 7.wav")
+        self.variation8 = arcade.load_sound("sounds/Variation 8.wav")
+        self.variation9 = arcade.load_sound("sounds/Variation 9.wav")
         
         
     def setup(self):
@@ -109,6 +109,8 @@ class TankGame(arcade.Window):
         self.player_list = arcade.SpriteList()
         self.explosions_list = arcade.SpriteList()
         self.obstacle_list = arcade.SpriteList()
+        self.breakable_obstacle_list = arcade.SpriteList()
+        self.explodables_list = arcade.SpriteList()
         self.exploded_tank_list = arcade.SpriteList()
         self.mine_list = arcade.SpriteList()
         self.tracks_list = arcade.SpriteList()
@@ -118,14 +120,18 @@ class TankGame(arcade.Window):
         
         # Load level from the tilemap
         layer_options = {"Obstacles" : {"use_spatial_hash": True},
+                        "Breakable Obstacles" : {"use_spatial_hash": True},
+                        "Explodables" : {"use_spatial_hash": True},
                         "Easy Enemies" : {"use_spatial_hash": True},
                         "Medium Enemies" : {"use_spatial_hash": True},
-                        "Hard Enemies" : {"use_spatial_hash": True}}
+                        "Hard Enemies" : {"use_spatial_hash": True},}
         
         tile_map = arcade.load_tilemap(f"maps/level{self.level_num}.tmx", layer_options=layer_options)
 
         # Load data from tilemap layers
         self.obstacle_list = tile_map.sprite_lists["Obstacles"]
+        self.breakable_obstacle_list = tile_map.sprite_lists["Breakable Obstacles"]
+        self.explodables_list = tile_map.sprite_lists["Explodables"]
         easy_enemy_tiles = tile_map.sprite_lists["Easy Enemies"]
         medium_enemy_tiles = tile_map.sprite_lists["Medium Enemies"]
         hard_enemy_tiles = tile_map.sprite_lists["Hard Enemies"]
@@ -170,6 +176,18 @@ class TankGame(arcade.Window):
                                             collision_type="wall",
                                             elasticity = 1.0,
                                             body_type=arcade.PymunkPhysicsEngine.STATIC)
+        
+        self.physics_engine.add_sprite_list(self.breakable_obstacle_list,
+                                            friction = 0,
+                                            collision_type="wall",
+                                            elasticity = 1.0,
+                                            body_type=arcade.PymunkPhysicsEngine.STATIC)
+        
+        self.physics_engine.add_sprite_list(self.explodables_list,
+                                            friction = 0,
+                                            collision_type="wall",
+                                            elasticity = 1.0,
+                                            body_type=arcade.PymunkPhysicsEngine.STATIC)
     
 
         self.astar_barrier_list = arcade.AStarBarrierList(moving_sprite=self.player_sprite,
@@ -206,6 +224,8 @@ class TankGame(arcade.Window):
             self.player_list.draw()
             self.explosions_list.draw()
             self.obstacle_list.draw()
+            self.explodables_list.draw()
+            self.breakable_obstacle_list.draw()
             self.crosshair_sprite.draw()
             
 
@@ -410,7 +430,7 @@ class TankGame(arcade.Window):
 
                 for obstacle in obstacle_explosion_list:
                     
-                    if obstacle.explodable:
+                    if obstacle.breakable:
                         # Move it to the location of the obstacle
                         self.explosion_animation(obstacle.center_x, self.obstacle.center_y)
 
@@ -459,6 +479,19 @@ class TankGame(arcade.Window):
             hit_list = arcade.check_for_collision_with_list(bullet, self.obstacle_list)
             if len(hit_list) > 0:
                 bullet.num_ricochets += 1
+                
+            # remove breakable obstacle if hit
+            for obstacle in self.breakable_obstacle_list:
+                if arcade.check_for_collision(bullet, obstacle):
+                    obstacle.remove_from_sprite_lists()
+                    bullet.remove_from_sprite_lists()
+                    
+            # explode if an explodable is hit
+            for explodable in self.explodables_list:
+                if arcade.check_for_collision(bullet,explodable):
+                    self.explosion_animation(explodable.center_x, explodable.center_y)
+                    explodable.remove_from_sprite_lists()
+                    bullet.remove_from_sprite_lists()
                 
         # Remove bullets if they collide with eachother
         for bullet in self.bullet_list:

@@ -114,7 +114,6 @@ class EnemyTank(arcade.Sprite):
                 if arcade.check_for_collision_with_list(self,obstacle_list):
                     # tank is most likely hitting wall, change x or y direction
                     self.move_rand_int = {1 : 2, 2 : 1, 3 : 4, 4 : 3, 5: 5}[self.move_rand_int]
-                    print(self.move_rand_int)
                 
             # move up
             if self.move_rand_int == 1:
