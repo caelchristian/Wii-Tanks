@@ -65,16 +65,16 @@ class TankGame(arcade.Window):
         
     def load_sounds(self):
         # main sfx
-        self.shoot1 = arcade.load_sound("sounds/shoot1.wav")
-        self.shoot2 = arcade.load_sound("sounds/shoot2.wav")
-        self.move1 = arcade.load_sound("sounds/move1.wav")
-        self.move2 = arcade.load_sound("sounds/move2.wav")
-        self.move3 = arcade.load_sound("sounds/move3.wav")
-        self.move4 = arcade.load_sound("sounds/move4.wav")
-        self.explode1 = arcade.load_sound("sounds/explode1.wav")
-        self.explode2 = arcade.load_sound("sounds/explode2.wav")
-        self.richochet1 = arcade.load_sound("sounds/richochet1.wav")
-        self.richochet2 = arcade.load_sound("sounds/richochet2.wav")
+        self.shoot1 = arcade.sound.load_sound("sounds/shoot1.wav")
+        self.shoot2 = arcade.sound.load_sound("sounds/shoot2.wav")
+        self.move1 = arcade.sound.load_sound("sounds/move1.wav")
+        self.move2 = arcade.sound.load_sound("sounds/move2.wav")
+        self.move3 = arcade.sound.load_sound("sounds/move3.wav")
+        self.move4 = arcade.sound.load_sound("sounds/move4.wav")
+        self.explode1 = arcade.sound.load_sound("sounds/explode1.wav")
+        self.explode2 = arcade.sound.load_sound("sounds/explode2.wav")
+        self.richochet1 = arcade.sound.load_sound("sounds/richochet1.wav")
+        self.richochet2 = arcade.sound.load_sound("sounds/richochet2.wav")
         
         # game sfx
         self.whistle = arcade.load_sound("sounds/whistle.wav")
@@ -260,9 +260,6 @@ class TankGame(arcade.Window):
         """ 
         Moves the player according to keys pressed
         """
-        # Set cooldown variables for the tracks
-        tracks_cooldown = 3
-        can_track = False
 
         # Apply forces to push player in direction of arrow keys
         # Set friction to 0 temporarily to make the player move faster
@@ -271,7 +268,7 @@ class TankGame(arcade.Window):
                 self.physics_engine.apply_force(self.player_sprite, (0, -Tanks.PLAYER_MOVE_FORCE))
                 self.physics_engine.set_friction(self.player_sprite, 0)
                 
-                if can_track:
+                if self.player_sprite.can_track:
                     # Add tracks sprite at the correct angle and behind the player sprite
                     self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
                     self.tracks_sprite.angle = 180
@@ -280,20 +277,20 @@ class TankGame(arcade.Window):
                     self.tracks_list.append(self.tracks_sprite)
 
                     # Reset the track cooldown
-                    tracks_cooldown = 3
-                    can_track = False
+                    self.player_sprite.track_cooldown = 0.3
+                    self.player_sprite.can_track = False
 
                 else:
-                    tracks_cooldown -= delta_time
-                    if tracks_cooldown < 0:
-                        can_track = True
+                    self.player_sprite.track_cooldown -= delta_time
+                    if self.player_sprite.track_cooldown < 0:
+                        self.player_sprite.can_track = True
                 
 
             if self.down_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (0, Tanks.PLAYER_MOVE_FORCE))
                 self.physics_engine.set_friction(self.player_sprite, 0)
 
-                if can_track:
+                if self.player_sprite.can_track:
                     # Add tracks sprite at the correct angle and behind the player sprite
                     self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
                     self.tracks_sprite.angle = 180
@@ -302,53 +299,55 @@ class TankGame(arcade.Window):
                     self.tracks_list.append(self.tracks_sprite)
 
                     # Reset the track cooldown
-                    tracks_cooldown = 3
-                    can_track = False
+                    self.player_sprite.track_cooldown = 0.3
+                    self.player_sprite.can_track = False
 
                 else:
-                    tracks_cooldown -= delta_time
-                    if tracks_cooldown < 0:
-                        can_track = True
+                    self.player_sprite.track_cooldown -= delta_time
+                    if self.player_sprite.track_cooldown < 0:
+                        self.player_sprite.can_track = True
 
             if self.left_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (Tanks.PLAYER_MOVE_FORCE, 0))
                 self.physics_engine.set_friction(self.player_sprite, 0)
                 
-                if can_track:
+                if self.player_sprite.can_track:
                     # Add tracks sprite at the correct angle and behind the player sprite
                     self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)   
+                    self.tracks_sprite.angle = 90
                     self.tracks_sprite.center_x = self.player_sprite.center_x + 10
                     self.tracks_sprite.center_y = self.player_sprite.center_y
                     self.tracks_list.append(self.tracks_sprite)
 
                     # Reset the track cooldown
-                    tracks_cooldown = 3
-                    can_track = False
+                    self.player_sprite.track_cooldown = 0.3
+                    self.player_sprite.can_track = False
 
                 else:
-                    tracks_cooldown -= delta_time
-                    if tracks_cooldown < 0:
-                        can_track = True
+                    self.player_sprite.track_cooldown -= delta_time
+                    if self.player_sprite.track_cooldown < 0:
+                        self.player_sprite.can_track = True
 
             if self.right_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (-Tanks.PLAYER_MOVE_FORCE, 0))
                 self.physics_engine.set_friction(self.player_sprite, 0)
                 
-                if can_track:
+                if self.player_sprite.can_track:
                     # Add tracks sprite at the correct angle and behind the player sprite
                     self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
+                    self.tracks_sprite.angle = 90
                     self.tracks_sprite.center_x = self.player_sprite.center_x - 10
                     self.tracks_sprite.center_y = self.player_sprite.center_y
                     self.tracks_list.append(self.tracks_sprite)
 
                     # Reset the track cooldown
-                    tracks_cooldown = 3
-                    can_track = False
+                    self.player_sprite.track_cooldown = 0.3
+                    self.player_sprite.can_track = False
 
                 else:
-                    tracks_cooldown -= delta_time
-                    if tracks_cooldown < 0:
-                        can_track = True
+                    self.player_sprite.track_cooldown -= delta_time
+                    if self.player_sprite.track_cooldown < 0:
+                        self.player_sprite.can_track = True
                 
             # If no keys are pressed, set the friction to 1 to slow the tank down
             if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
@@ -388,7 +387,6 @@ class TankGame(arcade.Window):
                     enemy.can_shoot = True
                     
             enemy.move_cooldown -= delta_time
-        
         
         
     def update_mines(self, delta_time):
@@ -436,7 +434,6 @@ class TankGame(arcade.Window):
 
                         #Remove the obstacle
                         obstacle.remove_from_sprite_lists()
-
 
                 # Remove the mine from the sprite list
                 mine.remove_from_sprite_lists()
