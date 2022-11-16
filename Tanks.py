@@ -18,6 +18,7 @@ PLAYER_SHOOT_COOLDOWN = 1
 EASY_ENEMY_SHOOT_COOLDOWN = 7
 MEDIUM_ENEMY_SHOOT_COOLDOWN = 5
 HARD_ENEMY_SHOOT_COOLDOWN = 3 
+PLAYER_TRACK_COOLDOWN = 2
 MINE_EXPLODE_TIME = 10
 MAX_RICOCHETS = 2
 MOVE_COOLDOWN = .5
@@ -41,6 +42,8 @@ class PlayerTank(arcade.Sprite):
         self.target_y = 0
         self.can_shoot = False
         self.cooldown = PLAYER_SHOOT_COOLDOWN
+        self.track_cooldown = PLAYER_TRACK_COOLDOWN
+        self.can_track = False
 
 
     def update(self):
