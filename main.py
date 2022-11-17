@@ -56,9 +56,11 @@ class TankGame(arcade.Window):
         self.right_pressed: bool = False
         self.up_pressed: bool = False
         self.down_pressed: bool = False
+        self.direction = 0
 
         # Load the explosions from the sprite sheet
         self.explosion_texture_list = arcade.load_spritesheet(file_name="assets/explosions_sheet.png", sprite_width=130, sprite_height=130, columns=5, count=5)
+        self.player_texture_list = [arcade.load_texture(f"assets/tankBody_blue{i}.png") for i in range(4)]
 
         # load sounds
         self.load_sounds()
@@ -126,7 +128,7 @@ class TankGame(arcade.Window):
                         "Medium Enemies" : {"use_spatial_hash": True},
                         "Hard Enemies" : {"use_spatial_hash": True},}
         
-        tile_map = arcade.load_tilemap(f"maps/level{self.level_num}.tmx", layer_options=layer_options)
+        tile_map = arcade.load_tilemap(f"maps/level{self.level_num}.tmx", layer_options=layer_options, hit_box_algorithm="None")
 
         # Load data from tilemap layers
         self.obstacle_list = tile_map.sprite_lists["Obstacles"]
@@ -148,7 +150,7 @@ class TankGame(arcade.Window):
             self.add_enemy_tank(tile.center_x, tile.center_y, Tanks.Difficulty.HARD)
         
         # Create the player tank object and set its coordinates
-        self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue.png", "assets/tankBlue_barrel_rotate.png", .8)
+        self.player_sprite = Tanks.PlayerTank("assets/tankBody_blue1.png", "assets/tankBlue_barrel_rotate.png", .8)
         self.player_sprite.center_x = player_tile.center_x
         self.player_sprite.center_y = player_tile.center_y
         self.player_sprite.angle = 180
@@ -217,15 +219,15 @@ class TankGame(arcade.Window):
             # Draw all sprite lists
             self.tracks_list.draw()
             self.exploded_tank_list.draw()
+            self.mine_list.draw()
             self.enemy_list.draw()
             self.enemy_turret_list.draw()
-            self.mine_list.draw()
             self.bullet_list.draw()
             self.player_list.draw()
-            self.explosions_list.draw()
             self.obstacle_list.draw()
             self.explodables_list.draw()
             self.breakable_obstacle_list.draw()
+            self.explosions_list.draw()
             self.crosshair_sprite.draw()
             
 
@@ -264,10 +266,11 @@ class TankGame(arcade.Window):
         # Apply forces to push player in direction of arrow keys
         # Set friction to 0 temporarily to make the player move faster
         if self.player_sprite in self.player_list:
-            if self.up_pressed:
+            if self.direction == Tanks.Direction.UP and self.up_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (0, -Tanks.PLAYER_MOVE_FORCE))
                 self.physics_engine.set_friction(self.player_sprite, 0)
-                
+                self.player_sprite.texture = self.player_texture_list[self.direction.value]
+
                 if self.player_sprite.can_track:
                     # Add tracks sprite at the correct angle and behind the player sprite
                     self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
@@ -286,9 +289,10 @@ class TankGame(arcade.Window):
                         self.player_sprite.can_track = True
                 
 
-            if self.down_pressed:
+            if self.direction == Tanks.Direction.DOWN and self.down_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (0, Tanks.PLAYER_MOVE_FORCE))
                 self.physics_engine.set_friction(self.player_sprite, 0)
+                self.player_sprite.texture = self.player_texture_list[self.direction.value]
 
                 if self.player_sprite.can_track:
                     # Add tracks sprite at the correct angle and behind the player sprite
@@ -307,9 +311,10 @@ class TankGame(arcade.Window):
                     if self.player_sprite.track_cooldown < 0:
                         self.player_sprite.can_track = True
 
-            if self.left_pressed:
+            if self.direction == Tanks.Direction.LEFT and self.left_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (Tanks.PLAYER_MOVE_FORCE, 0))
                 self.physics_engine.set_friction(self.player_sprite, 0)
+                self.player_sprite.texture = self.player_texture_list[self.direction.value]
                 
                 if self.player_sprite.can_track:
                     # Add tracks sprite at the correct angle and behind the player sprite
@@ -328,9 +333,10 @@ class TankGame(arcade.Window):
                     if self.player_sprite.track_cooldown < 0:
                         self.player_sprite.can_track = True
 
-            if self.right_pressed:
+            if self.direction == Tanks.Direction.RIGHT and self.right_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (-Tanks.PLAYER_MOVE_FORCE, 0))
                 self.physics_engine.set_friction(self.player_sprite, 0)
+                self.player_sprite.texture = self.player_texture_list[self.direction.value]
                 
                 if self.player_sprite.can_track:
                     # Add tracks sprite at the correct angle and behind the player sprite
@@ -412,7 +418,7 @@ class TankGame(arcade.Window):
                         enemy.turret.remove_from_sprite_lists()
                         self.tanks_destroyed += 1
 
-                mine_death_player_list = arcade.check_for_collision_with_lists(self.explosions_list, self.player_sprite)
+                mine_death_player_list = arcade.check_for_collision_with_list(self.player_sprite, self.explosions_list)
                 for mine in mine_death_player_list:
                     # Move it to the location of the player
                     self.explosion_animation(self.player_sprite.center_x, self.player_sprite.center_y)
@@ -563,13 +569,16 @@ class TankGame(arcade.Window):
         # If the player presses an arrow key, set the keypress toggle variable
         if key == arcade.key.UP:
             self.up_pressed = True
+            self.direction = Tanks.Direction.UP
         elif key == arcade.key.DOWN:
             self.down_pressed = True
+            self.direction = Tanks.Direction.DOWN
         elif key == arcade.key.LEFT:
             self.left_pressed = True
+            self.direction = Tanks.Direction.LEFT
         elif key == arcade.key.RIGHT:
             self.right_pressed = True
-
+            self.direction = Tanks.Direction.RIGHT
         elif key == arcade.key.SPACE:
             # Create the mine that is dropped
             self.mine = Tanks.Mine("assets/barrelBlack_top.png", 1)
@@ -683,16 +692,16 @@ class TankGame(arcade.Window):
     def add_enemy_tank(self, x, y, difficulty):
         
         if(difficulty == Tanks.Difficulty.EASY):
-            image = "assets/tankBody_red.png"
+            image = "assets/tankBody_red"
             cooldown = Tanks.EASY_ENEMY_SHOOT_COOLDOWN
         elif(difficulty == Tanks.Difficulty.MEDIUM):
-            image = "assets/tankBody_green.png"
+            image = "assets/tankBody_green"
             cooldown = Tanks.MEDIUM_ENEMY_SHOOT_COOLDOWN
         elif(difficulty == Tanks.Difficulty.HARD):
-            image = "assets/tankBody_dark.png"
+            image = "assets/tankBody_dark"
             cooldown = Tanks.HARD_ENEMY_SHOOT_COOLDOWN
 
-        self.enemy_sprite = Tanks.EnemyTank(image, difficulty, cooldown, 1)
+        self.enemy_sprite = Tanks.EnemyTank(image, difficulty, cooldown, 0.8)
         self.enemy_sprite.center_x = x
         self.enemy_sprite.center_y = y
         self.enemy_list.append(self.enemy_sprite)
