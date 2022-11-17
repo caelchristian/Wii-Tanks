@@ -561,10 +561,13 @@ class TankGame(arcade.Window):
         # If the player presses an arrow key, set the keypress toggle variable
         if key == arcade.key.W:
             self.up_pressed = True
+            self.direction = Tanks.Direction.UP
         elif key == arcade.key.S:
             self.down_pressed = True
+            self.direction = Tanks.Direction.DOWN
         elif key == arcade.key.A:
             self.left_pressed = True
+            self.direction = Tanks.Direction.LEFT
         elif key == arcade.key.D:
             self.right_pressed = True
             self.direction = Tanks.Direction.RIGHT
