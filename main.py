@@ -278,6 +278,7 @@ class TankGame(arcade.Window):
                     self.tracks_sprite.center_x = self.player_sprite.center_x
                     self.tracks_sprite.center_y = self.player_sprite.center_y - 10
                     self.tracks_list.append(self.tracks_sprite)
+                    arcade.play_sound(self.move2)
 
                     # Reset the track cooldown
                     self.player_sprite.track_cooldown = 0.3
@@ -301,6 +302,7 @@ class TankGame(arcade.Window):
                     self.tracks_sprite.center_x = self.player_sprite.center_x
                     self.tracks_sprite.center_y = self.player_sprite.center_y + 10
                     self.tracks_list.append(self.tracks_sprite)
+                    arcade.play_sound(self.move2)
 
                     # Reset the track cooldown
                     self.player_sprite.track_cooldown = 0.3
@@ -323,6 +325,7 @@ class TankGame(arcade.Window):
                     self.tracks_sprite.center_x = self.player_sprite.center_x + 10
                     self.tracks_sprite.center_y = self.player_sprite.center_y
                     self.tracks_list.append(self.tracks_sprite)
+                    arcade.play_sound(self.move2)
 
                     # Reset the track cooldown
                     self.player_sprite.track_cooldown = 0.3
@@ -345,6 +348,7 @@ class TankGame(arcade.Window):
                     self.tracks_sprite.center_x = self.player_sprite.center_x - 10
                     self.tracks_sprite.center_y = self.player_sprite.center_y
                     self.tracks_list.append(self.tracks_sprite)
+                    arcade.play_sound(self.move2)
 
                     # Reset the track cooldown
                     self.player_sprite.track_cooldown = 0.3
@@ -655,6 +659,7 @@ class TankGame(arcade.Window):
 
         # Add to list of explosion sprites
         self.explosions_list.append(explosion)
+        arcade.play_sound(self.explode1)
         explosion.update()
     
     def shoot_bullet(self, start_x, start_y, target_x, target_y):
