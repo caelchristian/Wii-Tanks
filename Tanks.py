@@ -30,6 +30,12 @@ class Difficulty(Enum):
     MEDIUM = 2
     HARD = 3
 
+class Direction(Enum):
+    DOWN = 0
+    LEFT = 1
+    UP = 2
+    RIGHT = 3
+
 class PlayerTank(arcade.Sprite):
     """
     Player Tank Class. Inherits from arcade.Sprite to allow setting textures
@@ -69,7 +75,8 @@ class EnemyTank(arcade.Sprite):
     """
     
     def __init__(self, tank_image, difficulty, cooldown, scale=1):
-        super().__init__(tank_image, scale, hit_box_algorithm="Simple")
+        super().__init__(tank_image + "1.png", scale, hit_box_algorithm="Simple")
+        self.texture_list = [arcade.load_texture(f"{tank_image}{i}.png") for i in range(4)]
         self.turret = arcade.Sprite(ENEMY_TANK_BARREL, scale)
         self.exploded = arcade.Sprite(EXPLODED_TANK_IMAGE, scale)
         self.player_x = 0
@@ -121,15 +128,19 @@ class EnemyTank(arcade.Sprite):
             # move up
             if self.move_rand_int == 1:
                 physics_engine.apply_force(self, (0, 500))
+                self.texture = self.texture_list[Direction.DOWN.value]
             # move down
             if self.move_rand_int == 2:
                 physics_engine.apply_force(self, (0, -500))
+                self.texture = self.texture_list[Direction.UP.value]
             # move left
             if self.move_rand_int == 3:
                 physics_engine.apply_force(self, (-500, 0))
+                self.texture = self.texture_list[Direction.RIGHT.value]
             # move right
             if self.move_rand_int == 4:
                 physics_engine.apply_force(self, (500, 0))
+                self.texture = self.texture_list[Direction.LEFT.value]
                 
         elif(self.difficulty == Difficulty.HARD):
             if self.path is None or self.path == [] or self.path_idx > len(self.path) - 1:
@@ -159,13 +170,17 @@ class EnemyTank(arcade.Sprite):
                     if(abs(x_diff) >= 10):
                         if x_diff > 0:
                             physics_engine.apply_force(self, (-500, 0))
+                            self.texture = self.texture_list[Direction.UP.value]
                         else:
                             physics_engine.apply_force(self, (500, 0))
+                            self.texture = self.texture_list[Direction.DOWN.value]
                     else:
                         if y_diff > 0:
                             physics_engine.apply_force(self, (0, -500))
+                            self.texture = self.texture_list[Direction.RIGHT.value]
                         else:
                             physics_engine.apply_force(self, (0, 500))
+                            self.texture = self.texture_list[Direction.LEFT.value]
 
             
 class Explosion(arcade.Sprite):
