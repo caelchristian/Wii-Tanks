@@ -429,14 +429,11 @@ class TankGame(arcade.Window):
                     # user doesn't win by default
                     self.player_dead = True
 
-
-                obstacle_explosion_list = arcade.check_for_collision_with_lists(self.explosions_list, self.obstacle_list)
-
-                for obstacle in obstacle_explosion_list:
-                    
-                    if obstacle.breakable:
+                for obstacle in self.breakable_obstacle_list:
+                    hit_list = arcade.check_for_collision_with_list(obstacle, self.explosions_list)
+                    if len(hit_list) > 0:
                         # Move it to the location of the obstacle
-                        self.explosion_animation(obstacle.center_x, self.obstacle.center_y)
+                        self.explosion_animation(obstacle.center_x, obstacle.center_y)
 
                         #Remove the obstacle
                         obstacle.remove_from_sprite_lists()
