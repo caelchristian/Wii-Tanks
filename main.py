@@ -42,12 +42,16 @@ class TankGame(arcade.Window):
         # Initialize instance variables
         self.tanks_destroyed = 0
         self.end_level_time = 1
-        self.player_dead = False
+        self.game_lost = False
         self.game_over = False
+        self.round_over = False
+        self.round_lost = False
         self.physics_engine = None
         self.explosion_texture_list = []
-        self.level_num = 0
-        self.level_num_max = 2
+        self.level_num = 1
+        self.level_num_max = 5
+        self.player_lives = 3
+        self.max_player_lives = 5
         
         self.astar_barrier_list = None
 
@@ -66,7 +70,6 @@ class TankGame(arcade.Window):
         self.load_sounds()
         
     def load_sounds(self):
-        # main sfx
         self.shoot1 = arcade.sound.load_sound("sounds/shoot1.wav")
         self.shoot2 = arcade.sound.load_sound("sounds/shoot2.wav")
         self.move1 = arcade.sound.load_sound("sounds/move1.wav")
@@ -87,16 +90,8 @@ class TankGame(arcade.Window):
         self.results = arcade.load_sound("sounds/Results.wav")
         self.round_fail = arcade.load_sound("sounds/Round Failure.wav")
         
-        # music
-        self.variation1 = arcade.load_sound("sounds/Variation 1.wav")
-        self.variation2 = arcade.load_sound("sounds/Variation 2.wav")
-        self.variation3 = arcade.load_sound("sounds/Variation 3.wav")
-        self.variation4 = arcade.load_sound("sounds/Variation 4.wav")
-        self.variation5 = arcade.load_sound("sounds/Variation 5.wav")
-        self.variation6 = arcade.load_sound("sounds/Variation 6.wav")
-        self.variation7 = arcade.load_sound("sounds/Variation 7.wav")
-        self.variation8 = arcade.load_sound("sounds/Variation 8.wav")
-        self.variation9 = arcade.load_sound("sounds/Variation 9.wav")
+        # load music each level
+        self.variation1 = arcade.load_sound(f"sounds/Variation {self.level_num}.wav")
         
         
     def setup(self):
@@ -116,9 +111,6 @@ class TankGame(arcade.Window):
         self.exploded_tank_list = arcade.SpriteList()
         self.mine_list = arcade.SpriteList()
         self.tracks_list = arcade.SpriteList()
-        
-        # increment level number
-        self.level_num += 1
         
         # Load level from the tilemap
         layer_options = {"Obstacles" : {"use_spatial_hash": True},
@@ -181,13 +173,13 @@ class TankGame(arcade.Window):
         
         self.physics_engine.add_sprite_list(self.breakable_obstacle_list,
                                             friction = 0,
-                                            collision_type="wall",
+                                            collision_type="breakable wall",
                                             elasticity = 1.0,
                                             body_type=arcade.PymunkPhysicsEngine.STATIC)
         
         self.physics_engine.add_sprite_list(self.explodables_list,
                                             friction = 0,
-                                            collision_type="wall",
+                                            collision_type="explodables",
                                             elasticity = 1.0,
                                             body_type=arcade.PymunkPhysicsEngine.STATIC)
     
@@ -206,6 +198,9 @@ class TankGame(arcade.Window):
                                        friction=1.0,
                                        moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
                                        collision_type="player")
+            
+        # increment level number for next setup call
+        self.level_num += 1
 
 
     def on_draw(self):
@@ -238,7 +233,7 @@ class TankGame(arcade.Window):
                         font_size=24,
                         width=Tanks.SCREEN_WIDTH,
                         align="center")
-        elif not self.player_dead:
+        elif not self.game_lost:
             # Winning screen
             arcade.draw_text(text=f"You won the game! \nPress the escape key to exit.", 
                         start_x=0, 
@@ -431,7 +426,7 @@ class TankGame(arcade.Window):
                     self.player_sprite.remove_from_sprite_lists()
                     self.player_sprite.turret.remove_from_sprite_lists()
                     # user doesn't win by default
-                    self.player_dead = True
+                    self.round_lost = True
 
                 for obstacle in self.breakable_obstacle_list:
                     hit_list = arcade.check_for_collision_with_list(obstacle, self.explosions_list)
@@ -477,7 +472,7 @@ class TankGame(arcade.Window):
                 self.player_sprite.turret.remove_from_sprite_lists()
                 bullet.remove_from_sprite_lists()
                 # user doesn't win by default
-                self.player_dead = True
+                self.game_lost = True
                 
             # Increment ricochets if wall hit
             hit_list = arcade.check_for_collision_with_list(bullet, self.obstacle_list)
@@ -513,13 +508,13 @@ class TankGame(arcade.Window):
             delta_time (float): time passed since last update
         """
         # If all enemy tanks are destroyed OR the player dies, the game will end in one second
-        if len(self.enemy_list) == 0 or self.player_dead:
+        if len(self.enemy_list) == 0 or self.game_lost:
             self.end_level_time -= delta_time
 
         # if transition time over
         if self.end_level_time < 0:
             # if player is dead, end game
-            if self.player_dead:
+            if self.game_lost:
                 self.game_over = True
             # else if player hasn't beat final level
             elif self.level_num < self.level_num_max:
@@ -568,16 +563,16 @@ class TankGame(arcade.Window):
         """
 
         # If the player presses an arrow key, set the keypress toggle variable
-        if key == arcade.key.UP:
+        if key == arcade.key.W:
             self.up_pressed = True
             self.direction = Tanks.Direction.UP
-        elif key == arcade.key.DOWN:
+        elif key == arcade.key.S:
             self.down_pressed = True
             self.direction = Tanks.Direction.DOWN
-        elif key == arcade.key.LEFT:
+        elif key == arcade.key.A:
             self.left_pressed = True
             self.direction = Tanks.Direction.LEFT
-        elif key == arcade.key.RIGHT:
+        elif key == arcade.key.D:
             self.right_pressed = True
             self.direction = Tanks.Direction.RIGHT
         elif key == arcade.key.SPACE:
@@ -597,13 +592,13 @@ class TankGame(arcade.Window):
         Called whenever the user lets off a previously pressed key.
         """
         # If a player releases a key, unset the keypress toggle variable
-        if key == arcade.key.UP:
+        if key == arcade.key.W:
             self.up_pressed = False
-        elif key == arcade.key.DOWN:
+        elif key == arcade.key.S:
             self.down_pressed = False
-        elif key == arcade.key.LEFT:
+        elif key == arcade.key.A:
             self.left_pressed = False
-        elif key == arcade.key.RIGHT:
+        elif key == arcade.key.D:
             self.right_pressed = False
 
 
