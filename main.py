@@ -211,7 +211,6 @@ class TankGame(arcade.Window):
         """
         # Clear the frame to prepare for drawing sprites
         arcade.start_render()
-        print(self.round_lost)
 
         if not self.game_over and not self.round_over:
             # Draw all sprite lists
@@ -450,7 +449,6 @@ class TankGame(arcade.Window):
                     self.player_sprite.remove_from_sprite_lists()
                     self.player_sprite.turret.remove_from_sprite_lists()
                     # user doesn't win by default
-                    self.round_over = True
                     self.round_lost = True
                     self.player_lives -= 1
 
@@ -501,7 +499,6 @@ class TankGame(arcade.Window):
                 
                 # user doesn't win by default
                 # lose a life
-                self.round_over = True
                 self.round_lost = True
                 self.player_lives -= 1
                 
@@ -540,7 +537,6 @@ class TankGame(arcade.Window):
         """
         # If all enemy tanks are destroyed OR the player dies, start transition timer
         if len(self.enemy_list) == 0 and not self.round_lost:
-            self.round_over = True
             self.end_level_time -= delta_time
 
         if self.round_lost:
@@ -556,6 +552,7 @@ class TankGame(arcade.Window):
 
         # if transition time over
         if self.end_level_time < 0:
+            self.round_over = True
             if not self.round_lost:
                 self.level_num += 1
             self.end_level_time = 1
@@ -624,7 +621,7 @@ class TankGame(arcade.Window):
         if self.game_over and key == arcade.key.ESCAPE:
             arcade.close_window()
 
-        if key == arcade.key.ENTER:
+        if self.round_over and key == arcade.key.ENTER:
             self.round_lost = False
             self.round_over = False
             
