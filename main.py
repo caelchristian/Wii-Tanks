@@ -42,18 +42,20 @@ class TankGame(arcade.Window):
         # Initialize instance variables
         self.tanks_destroyed = 0
         self.end_level_time = 1
+        self.transition_time = 2
+        self.physics_engine = None
+        self.explosion_texture_list = []
+        self.astar_barrier_list = None
+        
+        # status variables
         self.game_lost = False
         self.game_over = False
         self.round_over = False
         self.round_lost = False
-        self.physics_engine = None
-        self.explosion_texture_list = []
         self.level_num = 1
         self.level_num_max = 5
-        self.player_lives = 3
+        self.player_lives = 1
         self.max_player_lives = 5
-        
-        self.astar_barrier_list = None
 
         # Keypress tracking variables
         self.left_pressed: bool = False
@@ -68,6 +70,9 @@ class TankGame(arcade.Window):
 
         # load sounds
         self.load_sounds()
+        
+        # load tank icon (this should prolly go somewhere else)
+        self.tank_icon = arcade.load_texture("assets/tank_icon.png")
         
     def load_sounds(self):
         self.shoot1 = arcade.sound.load_sound("sounds/shoot1.wav")
@@ -91,7 +96,7 @@ class TankGame(arcade.Window):
         self.round_fail = arcade.load_sound("sounds/Round Failure.wav")
         
         # load music each level
-        self.variation1 = arcade.load_sound(f"sounds/Variation {self.level_num}.wav")
+        self.music = arcade.load_sound(f"sounds/Variation {self.level_num}.wav")
         
         
     def setup(self):
@@ -118,7 +123,7 @@ class TankGame(arcade.Window):
                         "Explodables" : {"use_spatial_hash": True},
                         "Easy Enemies" : {"use_spatial_hash": True},
                         "Medium Enemies" : {"use_spatial_hash": True},
-                        "Hard Enemies" : {"use_spatial_hash": True},}
+                        "Hard Enemies" : {"use_spatial_hash": True}}
         
         tile_map = arcade.load_tilemap(f"maps/level{self.level_num}.tmx", layer_options=layer_options, hit_box_algorithm="None")
 
@@ -198,9 +203,6 @@ class TankGame(arcade.Window):
                                        friction=1.0,
                                        moment=arcade.PymunkPhysicsEngine.MOMENT_INF,
                                        collision_type="player")
-            
-        # increment level number for next setup call
-        self.level_num += 1
 
 
     def on_draw(self):
@@ -242,15 +244,27 @@ class TankGame(arcade.Window):
                         color=arcade.color.BLACK,
                         width=Tanks.SCREEN_WIDTH,
                         align="center")
-        else:
-            # Losing screen
-            arcade.draw_text(text=f"You lost the game! \nPress the escape key to exit.", 
-                        start_x=0, 
-                        start_y=400,
-                        font_size=48,
-                        color=arcade.color.BLACK,
-                        width=Tanks.SCREEN_WIDTH,
-                        align="center")
+        elif self.round_over:
+            # Transition screen
+            if self.round_lost:
+                arcade.draw_text(text=f"Lives = {self.player_lives}.", 
+                            start_x=0, 
+                            start_y=400,
+                            font_size=48,
+                            color=arcade.color.BLACK,
+                            width=Tanks.SCREEN_WIDTH,
+                            align="center")
+
+            else:
+                # display next level numbers, num of enemy tanks, and lives remaining
+                arcade.draw_text(text=f"Lives = {self.player_lives}.", 
+                            start_x=0, 
+                            start_y=100,
+                            font_size=48,
+                            color=arcade.color.BLACK,
+                            width=Tanks.SCREEN_WIDTH,
+                            align="center")
+            arcade.draw_texture_rectangle(center_x=100, center_y=100, width=100, height=50 ,texture=self.tank_icon)
             
 
     def update_player(self, delta_time):
@@ -471,8 +485,12 @@ class TankGame(arcade.Window):
                 self.player_sprite.remove_from_sprite_lists()
                 self.player_sprite.turret.remove_from_sprite_lists()
                 bullet.remove_from_sprite_lists()
+                self.player_sprite.can_shoot = False
+                
                 # user doesn't win by default
-                self.game_lost = True
+                # lose a life
+                self.round_over = True
+                self.round_lost = True
                 
             # Increment ricochets if wall hit
             hit_list = arcade.check_for_collision_with_list(bullet, self.obstacle_list)
@@ -507,25 +525,42 @@ class TankGame(arcade.Window):
         Args:
             delta_time (float): time passed since last update
         """
-        # If all enemy tanks are destroyed OR the player dies, the game will end in one second
-        if len(self.enemy_list) == 0 or self.game_lost:
+        # If all enemy tanks are destroyed OR the player dies, start transition timer
+        if len(self.enemy_list) == 0 or self.round_lost:
             self.end_level_time -= delta_time
 
         # if transition time over
         if self.end_level_time < 0:
-            # if player is dead, end game
-            if self.game_lost:
-                self.game_over = True
-            # else if player hasn't beat final level
-            elif self.level_num < self.level_num_max:
-                # enemies are dead, reset end level time and load next level
-                self.end_level_time = 1
-                self.setup()
-            # else player has won
+            # if player still has lives
+            if self.player_lives > 0:
+                
+                # if player hasn't beat final level
+                if self.level_num < self.level_num_max:
+                    # if player died this round, decrement lives
+                    if self.round_lost:
+                        self.player_lives -= 1
+                        self.round_lost = False
+                        
+                    # enemies are dead, onto next level
+                    else:
+                        self.level_num += 1
+                        
+                    # reset end_level_time and 
+                    self.end_level_time = 1
+                    self.round_over = False
+                    self.setup()
+                    
+                # end game, player won
+                else:
+                    self.game_over = True
+                    self.round_over = True
+                
+            # else player has lost
             else:
                 self.game_over = True
+                self.game_lost = True
             
-        if not self.player_sprite.can_shoot:
+        if not self.player_sprite.can_shoot and not self.round_over:
             # Player shoot on cooldown, remove delta time
             self.player_sprite.cooldown -= delta_time
             if self.player_sprite.cooldown < 0:
@@ -586,6 +621,7 @@ class TankGame(arcade.Window):
         # If the game is over and they press escape, close the application
         if self.game_over and key == arcade.key.ESCAPE:
             arcade.close_window()
+            
 
     def on_key_release(self, key, key_modifiers):
         """
@@ -685,6 +721,7 @@ class TankGame(arcade.Window):
         self.bullet_list.append(bullet)
         
         arcade.play_sound(self.shoot2)
+            
             
     def add_enemy_tank(self, x, y, difficulty):
         
