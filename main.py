@@ -364,47 +364,38 @@ class TankGame(arcade.Window):
         """
         # Reduce the time to explosion for all mines
         for mine in self.mine_list:
-            if mine.timer(delta_time) >= mine.end_time:
-                # Move it to location of the mine
+            hit_list = arcade.check_for_collision_with_list(mine, self.bullet_list)
+            if mine.timer(delta_time) >= mine.end_time or len(hit_list) > 0:
+                hit_list[0].remove_from_sprite_lists()
                 self.explosion_animation(mine.center_x, mine.center_y)
-                
-                for enemy in self.enemy_list:
-                    mine_death_enemy_list = arcade.check_for_collision_with_list(enemy, self.explosions_list)
-                    for mine in mine_death_enemy_list:
-                        # Move it to the location of the enemy x and y
-                        self.explosion_animation(enemy.center_x, enemy.center_y)
-
-                        # Add exploded enemy to exploded tank list
-                        self.exploded_tank_list.append(enemy.exploded)
-
-                        # Remove the enemy tank
-                        enemy.remove_from_sprite_lists()
-                        enemy.turret.remove_from_sprite_lists()
-                        self.tanks_destroyed += 1
-
-                mine_death_player_list = arcade.check_for_collision_with_list(self.player_sprite, self.explosions_list)
-                for mine in mine_death_player_list:
-                    # Move it to the location of the player
-                    self.explosion_animation(self.player_sprite.center_x, self.player_sprite.center_y)
-
-                    # Remove the player tank
-                    self.player_sprite.remove_from_sprite_lists()
-                    self.player_sprite.turret.remove_from_sprite_lists()
-                    # user doesn't win by default
-                    self.round_lost = True
-                    self.player_lives -= 1
-
-                for obstacle in self.breakable_obstacle_list:
-                    hit_list = arcade.check_for_collision_with_list(obstacle, self.explosions_list)
-                    if len(hit_list) > 0:
-                        # Move it to the location of the obstacle
-                        self.explosion_animation(obstacle.center_x, obstacle.center_y)
-
-                        #Remove the obstacle
-                        obstacle.remove_from_sprite_lists()
-
-                # Remove the mine from the sprite list
                 mine.remove_from_sprite_lists()
+                
+        for enemy in self.enemy_list:
+            mine_death_enemy_list = arcade.check_for_collision_with_list(enemy, self.explosions_list)
+            for mine in mine_death_enemy_list:
+                if len(mine_death_enemy_list) > 0:
+                    # Add exploded enemy to exploded tank list
+                    self.exploded_tank_list.append(enemy.exploded)
+
+                    # Remove the enemy tank
+                    enemy.remove_from_sprite_lists()
+                    enemy.turret.remove_from_sprite_lists()
+                    self.tanks_destroyed += 1
+
+        if len(self.player_list) > 0:
+            mine_death_player_list = arcade.check_for_collision_with_list(self.player_sprite, self.explosions_list)
+            if len(mine_death_player_list) > 0:
+                # Remove the player tank
+                self.player_sprite.remove_from_sprite_lists()
+                self.player_sprite.turret.remove_from_sprite_lists()
+                self.round_lost = True
+                self.player_lives -= 1
+
+        for obstacle in self.breakable_obstacle_list:
+            hit_list = arcade.check_for_collision_with_list(obstacle, self.explosions_list)
+            if len(hit_list) > 0:
+                #Remove the obstacle
+                obstacle.remove_from_sprite_lists()
     
     
     def update_bullets(self):
@@ -430,14 +421,14 @@ class TankGame(arcade.Window):
                 
             # Lose if player gets hit
             if arcade.check_for_collision(bullet, self.player_sprite):
-                # Move it to the location of the player
-                self.explosion_animation(self.player_sprite.center_x, self.player_sprite.center_y)
-
                 # Remove the player tank and the bullet
                 self.player_sprite.remove_from_sprite_lists()
                 self.player_sprite.turret.remove_from_sprite_lists()
                 bullet.remove_from_sprite_lists()
                 self.player_sprite.can_shoot = False
+
+                # Move it to the location of the player
+                self.explosion_animation(self.player_sprite.center_x, self.player_sprite.center_y)
                 
                 # user doesn't win by default
                 # lose a life
@@ -501,12 +492,17 @@ class TankGame(arcade.Window):
             
             self.setup()
             
-        if not self.player_sprite.can_shoot and not self.round_over:
+        if not self.player_sprite.can_shoot:
             # Player shoot on cooldown, remove delta time
             self.player_sprite.cooldown -= delta_time
             if self.player_sprite.cooldown < 0:
                 self.player_sprite.can_shoot = True
         
+        if not self.player_sprite.can_mine:
+            self.player_sprite.mine_cooldown -= delta_time
+            if self.player_sprite.mine_cooldown < 0:
+                self.player_sprite.can_mine = True
+
 
     def on_update(self, delta_time):
         """
@@ -553,10 +549,13 @@ class TankGame(arcade.Window):
             self.direction = Tanks.Direction.RIGHT
         elif key == arcade.key.SPACE:
             # Create the mine that is dropped
-            self.mine = Tanks.Mine("assets/barrelBlack_top.png", 1)
-            self.mine.center_x = self.player_sprite.center_x
-            self.mine.center_y = self.player_sprite.center_y
-            self.mine_list.append(self.mine)
+            if self.player_sprite.can_mine:
+                self.mine = Tanks.Mine("assets/barrelBlack_top.png", 1)
+                self.mine.center_x = self.player_sprite.center_x
+                self.mine.center_y = self.player_sprite.center_y
+                self.mine_list.append(self.mine)
+                self.player_sprite.can_mine = False
+                self.player_sprite.mine_cooldown = Tanks.PLAYER_MINE_COOLDOWN
             
 
         # If the game is over and they press escape, close the application
@@ -601,17 +600,18 @@ class TankGame(arcade.Window):
         Called when the user presses a mouse button.
         """
         # If the turret is in a obstacle, don't shoot a bullet
-        hit_list = arcade.check_for_collision_with_list(self.player_sprite.turret, self.obstacle_list)
-        if len(hit_list) == 0:
-            if self.player_sprite.can_shoot:
-                self.shoot_bullet(start_x = self.player_sprite.center_x,
-                                  start_y = self.player_sprite.center_y,
-                                  target_x = x,
-                                  target_y = y)
-                
-                # Reset the players cooldown
-                self.player_sprite.cooldown = Tanks.PLAYER_SHOOT_COOLDOWN
-                self.player_sprite.can_shoot = False
+        if not self.round_over:
+            hit_list = arcade.check_for_collision_with_list(self.player_sprite.turret, self.obstacle_list)
+            if len(hit_list) == 0:
+                if self.player_sprite.can_shoot:
+                    self.shoot_bullet(start_x = self.player_sprite.center_x,
+                                    start_y = self.player_sprite.center_y,
+                                    target_x = x,
+                                    target_y = y)
+                    
+                    # Reset the players cooldown
+                    self.player_sprite.cooldown = Tanks.PLAYER_SHOOT_COOLDOWN
+                    self.player_sprite.can_shoot = False
 
 
     def on_mouse_release(self, x, y, button, key_modifiers):
