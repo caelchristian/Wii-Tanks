@@ -53,8 +53,8 @@ class TankGame(arcade.Window):
         self.game_over = False
         self.round_over = False
         self.round_lost = False
-        self.level_num = 1
-        self.level_num_max = 2
+        self.level_num = 3
+        self.level_num_max = 4
         self.player_lives = 3
         self.max_player_lives = 5
 
@@ -298,8 +298,8 @@ class TankGame(arcade.Window):
                             width=Tanks.SCREEN_WIDTH,
                             align="center")
             arcade.draw_text(text="Final level!", 
-                        start_x=45, 
-                        start_y=125,
+                        start_x=0, 
+                        start_y=400,
                         font_size=48,
                         color=arcade.color.BLACK,
                         width=Tanks.SCREEN_WIDTH,
