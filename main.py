@@ -54,7 +54,7 @@ class TankGame(arcade.Window):
         self.round_over = False
         self.round_lost = False
         self.level_num = 1
-        self.level_num_max = 1
+        self.level_num_max = 10
         self.player_lives = 3
         self.max_player_lives = 5
 
@@ -78,7 +78,7 @@ class TankGame(arcade.Window):
         # load sounds
         self.load_sounds()
         # play level music
-        self.player = arcade.sound.play_sound(self.music)
+        self.player = self.music.play(volume=.5)
         
         # load tank icon (this should prolly go somewhere else)
         self.tank_icon = arcade.load_texture("assets/tank_icon.png")
@@ -107,7 +107,10 @@ class TankGame(arcade.Window):
         self.round_fail = arcade.load_sound("sounds/Round Failure.wav")
         
         # load music each level
-        self.music = arcade.load_sound(f"sounds/Variation {self.level_num}.wav")
+        if self.level_num < 9:
+            self.music = arcade.load_sound(f"sounds/Variation {self.level_num}.wav")
+        else:
+            self.music = arcade.load_sound(f"sounds/Variation 9.wav")
         
         
     def setup(self):
@@ -535,9 +538,9 @@ class TankGame(arcade.Window):
             if self.end_level_time == Tanks.END_LEVEL_TIME:
                 arcade.stop_sound(self.player)
                 if self.round_lost:
-                    self.player = self.round_fail.play()
+                    self.player = self.round_fail.play(volume=.5)
                 else:
-                    self.player = self.round_win.play()
+                    self.player = self.round_win.play(volume=.5)
             
             self.end_level_time -= delta_time
             
@@ -554,6 +557,9 @@ class TankGame(arcade.Window):
             self.round_over = True
             if not self.round_lost and not self.game_over:
                 self.level_num += 1
+                if self.level_num > self.level_num_max:
+                    self.game_over = True
+                    self.game_lost = False
             self.end_level_time = Tanks.END_LEVEL_TIME
             # extra life
             # if self.level_num != 0 and self.level_num % 5 == 0:
@@ -561,11 +567,11 @@ class TankGame(arcade.Window):
             #     self.player = self.extra_life.play()
             # game_over hasn't been set yet (have to use this)
             if self.game_over or self.level_num > self.level_num_max:
-                self.player = self.results.play()
+                self.player = self.results.play(volume=.5)
             else:
-                self.player = self.round_start.play()
-            
-            self.setup()
+                self.player = self.round_start.play(volume=.5)
+            if not self.game_over:
+                self.setup()
             
         if not self.player_sprite.can_shoot:
             # Player shoot on cooldown, remove delta time
@@ -771,7 +777,7 @@ class TankGame(arcade.Window):
             self.tracks_sprite.center_y = center_y
             self.tracks_list.append(self.tracks_sprite)
             
-            arcade.play_sound(self.move, volume=.4)
+            arcade.play_sound(self.move, volume=.3)
 
             # Reset the track cooldown
             self.player_sprite.track_cooldown = 0.3
