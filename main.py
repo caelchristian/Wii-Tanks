@@ -54,7 +54,7 @@ class TankGame(arcade.Window):
         self.round_over = False
         self.round_lost = False
         self.level_num = 1
-        self.level_num_max = 5
+        self.level_num_max = 2
         self.player_lives = 3
         self.max_player_lives = 5
 
@@ -297,7 +297,7 @@ class TankGame(arcade.Window):
                             color=arcade.color.BLACK,
                             width=Tanks.SCREEN_WIDTH,
                             align="center")
-            arcade.draw_text(text=f" x {self.player_lives}", 
+            arcade.draw_text(text="Final level!", 
                         start_x=45, 
                         start_y=125,
                         font_size=48,
@@ -330,7 +330,6 @@ class TankGame(arcade.Window):
 
                 # Call lay tracks function for UP key pressed
                 self.lay_tracks(180, self.player_sprite.center_x, self.player_sprite.center_y - 10, delta_time)
-                self.move.play()
                 
 
             if self.direction == Tanks.Direction.DOWN and self.down_pressed:
@@ -340,7 +339,6 @@ class TankGame(arcade.Window):
 
                 # Call lay tracks function for DOWN key pressed
                 self.lay_tracks(180, self.player_sprite.center_x, self.player_sprite.center_y + 10, delta_time)
-                self.move.play()
 
             if self.direction == Tanks.Direction.LEFT and self.left_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (Tanks.PLAYER_MOVE_FORCE, 0))
@@ -349,7 +347,6 @@ class TankGame(arcade.Window):
 
                 # Call lay tracks function for LEFT key pressed
                 self.lay_tracks(90, self.player_sprite.center_x + 10, self.player_sprite.center_y, delta_time)
-                self.move.play()
                 
             if self.direction == Tanks.Direction.RIGHT and self.right_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (-Tanks.PLAYER_MOVE_FORCE, 0))
@@ -358,8 +355,6 @@ class TankGame(arcade.Window):
 
                 # Call lay tracks function for RIGHT key pressed
                 self.lay_tracks(90, self.player_sprite.center_x - 10, self.player_sprite.center_y, delta_time)
-                
-                self.move.play()
                 
             # If no keys are pressed, set the friction to 1 to slow the tank down
             if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
@@ -744,7 +739,8 @@ class TankGame(arcade.Window):
             self.tracks_sprite.center_x = center_x
             self.tracks_sprite.center_y = center_y
             self.tracks_list.append(self.tracks_sprite)
-            arcade.play_sound(self.move2)
+            
+            arcade.play_sound(self.move, volume=.4)
 
             # Reset the track cooldown
             self.player_sprite.track_cooldown = 0.3
