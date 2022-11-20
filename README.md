@@ -11,7 +11,9 @@ This is a Python implementation of the Wii Play Tanks game, made using the Pytho
 4) The game window should appear, have fun!
 
 ## Playing the game
-- You can move your blue player tank with the arrow keys (up, down, left, right)
+- You can move your blue player tank with the WASD keys (W=up, S=down, A=left, D=right)
 - You can shoot bullets by clicking the mouse
-- You can aim by moving the mouse
+- You can aim by moving the mouse (the crosshairs will follow your mouse)
+- You can plant a mine using the Space bar
+- Try and beat all the levels by destroying the enemy tanks!
 
