@@ -53,7 +53,7 @@ class TankGame(arcade.Window):
         self.game_over = False
         self.round_over = False
         self.round_lost = False
-        self.level_num = 3
+        self.level_num = 1
         self.level_num_max = 4
         self.player_lives = 3
         self.max_player_lives = 5
@@ -254,6 +254,7 @@ class TankGame(arcade.Window):
                         start_x=0, 
                         start_y=800,
                         font_size=24,
+                        font_name="Kenney Mini Square",
                         width=Tanks.SCREEN_WIDTH,
                         align="center")
                         
@@ -263,6 +264,7 @@ class TankGame(arcade.Window):
                                 start_x=0, 
                                 start_y=400,
                                 font_size=48,
+                                font_name="Kenney Mini Square",
                                 color=arcade.color.BLACK,
                                 width=Tanks.SCREEN_WIDTH,
                                 align="center")
@@ -270,22 +272,34 @@ class TankGame(arcade.Window):
         # Winning screen
         elif self.game_over and not self.game_lost:
             arcade.draw_text(text=f"You won the game! \nPress the escape key to exit.", 
-                        start_x=0, 
-                        start_y=400,
-                        font_size=48,
-                        color=arcade.color.BLACK,
-                        width=Tanks.SCREEN_WIDTH,
-                        align="center")
+                            start_x=0, 
+                            start_y=400,
+                            font_size=48,
+                            font_name="Kenney Mini Square",
+                            color=arcade.color.BLACK,
+                            width=Tanks.SCREEN_WIDTH,
+                            align="center")
             
         # Losing screen
         elif self.game_over and self.game_lost:
-            arcade.draw_text(text=f"You lost the game! \nPress the escape key to exit.", 
-                        start_x=0, 
-                        start_y=400,
-                        font_size=48,
-                        color=arcade.color.BLACK,
-                        width=Tanks.SCREEN_WIDTH,
-                        align="center")
+            arcade.draw_text(text=f"Results:",
+                            start_x=0, 
+                            start_y=500,
+                            font_size=48,
+                            font_name="Kenney Mini Square",
+                            color=arcade.color.BLACK,
+                            width=Tanks.SCREEN_WIDTH,
+                            align="center")
+            
+            arcade.draw_text(text=f"Tanks destroyed: {self.tanks_destroyed} \n" +
+                             f"Levels cleared: {self.level_num}",
+                            start_x=0, 
+                            start_y=400,
+                            font_size=38,
+                            font_name="Kenney Mini Square",
+                            color=arcade.color.BLACK,
+                            width=Tanks.SCREEN_WIDTH,
+                            align="center")
             
         # Transition screen
         elif self.round_over:     
@@ -294,22 +308,25 @@ class TankGame(arcade.Window):
                             start_x=0, 
                             start_y=600,
                             font_size=48,
+                            font_name="Kenney Mini Square",
                             color=arcade.color.BLACK,
                             width=Tanks.SCREEN_WIDTH,
                             align="center")
-            arcade.draw_text(text="Final level!", 
-                        start_x=0, 
-                        start_y=400,
+            arcade.draw_text(text=f" x {self.player_lives}", 
+                        start_x=40, 
+                        start_y=130,
                         font_size=48,
+                        font_name="Kenney Mini Square",
                         color=arcade.color.BLACK,
                         width=Tanks.SCREEN_WIDTH,
                         align="center")
             arcade.draw_texture_rectangle(center_x=500, center_y=150, width=100, height=50 ,texture=self.tank_icon)
             if self.level_num == self.level_num_max:
-                        arcade.draw_text(text=f" x {self.player_lives}", 
+                arcade.draw_text(text="Final level!", 
                         start_x=0, 
-                        start_y=350,
+                        start_y=400,
                         font_size=48,
+                        font_name="Kenney Mini Square",
                         color=arcade.color.BLACK,
                         width=Tanks.SCREEN_WIDTH,
                         align="center")
@@ -512,7 +529,6 @@ class TankGame(arcade.Window):
                     self.player = self.round_win.play()
             
             self.end_level_time -= delta_time
-            
 
         if self.level_num > self.level_num_max and self.player_lives > 0:
             self.game_over = True
@@ -532,6 +548,8 @@ class TankGame(arcade.Window):
             if self.level_num != 0 and self.level_num % 5 == 0:
                 self.player_lives += 1
                 self.player = self.extra_life.play()
+            elif self.game_over:
+                self.player = self.results.play()
             else:
                 self.player = self.round_start.play()
             
@@ -604,7 +622,7 @@ class TankGame(arcade.Window):
         # If the game is over and they press escape, close the application
         elif self.game_over and key == arcade.key.ESCAPE:
             arcade.close_window()
-        elif self.round_over and key == arcade.key.ENTER:
+        elif self.round_over and key == arcade.key.ENTER and not self.game_over:
             self.round_lost = False
             self.round_over = False
             # play level music
