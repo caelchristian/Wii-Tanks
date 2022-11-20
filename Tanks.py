@@ -20,8 +20,9 @@ MEDIUM_ENEMY_SHOOT_COOLDOWN = 5
 HARD_ENEMY_SHOOT_COOLDOWN = 3 
 PLAYER_TRACK_COOLDOWN = 0.3
 MOVE_COOLDOWN = 1
-MINE_EXPLODE_TIME = 10
+MINE_EXPLODE_TIME = 3
 MAX_RICOCHETS = 2
+END_LEVEL_TIME = 2
 SCREEN_TITLE = "Tank Game"
 EXPLODED_TANK_IMAGE = "assets/barricadeMetal.png"
 ENEMY_TANK_BARREL = "assets/tankBlack_barrel_rotate.png"
@@ -91,7 +92,6 @@ class EnemyTank(arcade.Sprite):
             scale (int, optional): Sprite scale factor. Defaults to 1.
         """
         super().__init__(tank_image + "1.png", scale, hit_box_algorithm="Simple")
-        # Load a texture for each direction the tank can face
         self.texture_list = [arcade.load_texture(f"{tank_image}{i}.png") for i in range(4)]
         self.turret = arcade.Sprite(ENEMY_TANK_BARREL, scale)
         self.exploded = arcade.Sprite(EXPLODED_TANK_IMAGE, scale)
