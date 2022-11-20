@@ -15,12 +15,13 @@ PLAYER_MOVE_FORCE = 1500
 ENEMY_MOVE_FORCE = 500
 BULLET_MOVE_FORCE = 8000
 PLAYER_SHOOT_COOLDOWN = 1
+PLAYER_MINE_COOLDOWN = 5
 EASY_ENEMY_SHOOT_COOLDOWN = 7
 MEDIUM_ENEMY_SHOOT_COOLDOWN = 5
 HARD_ENEMY_SHOOT_COOLDOWN = 3 
 PLAYER_TRACK_COOLDOWN = 0.3
 MOVE_COOLDOWN = 1
-MINE_EXPLODE_TIME = 10
+MINE_EXPLODE_TIME = 8
 MAX_RICOCHETS = 2
 SCREEN_TITLE = "Tank Game"
 EXPLODED_TANK_IMAGE = "assets/barricadeMetal.png"
@@ -57,10 +58,12 @@ class PlayerTank(arcade.Sprite):
         self.exploded = arcade.Sprite(EXPLODED_TANK_IMAGE, scale)
         self.target_x = 0
         self.target_y = 0
-        self.can_shoot = False
-        self.can_track = False
+        self.can_shoot = True
+        self.can_track = True
+        self.can_mine = True
         self.cooldown = PLAYER_SHOOT_COOLDOWN
         self.track_cooldown = PLAYER_TRACK_COOLDOWN
+        self.mine_cooldown = PLAYER_MINE_COOLDOWN
 
     def update(self):
         """
@@ -274,11 +277,3 @@ class Mine(arcade.Sprite):
         """
         self.total_time += delta_time
         return self.total_time
-
-
-
-
-
-
-        
-        
