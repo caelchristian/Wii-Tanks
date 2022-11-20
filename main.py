@@ -38,6 +38,7 @@ class TankGame(arcade.Window):
         self.exploded_tank_list = None
         self.mine_list = None
         self.tracks_list = None
+        self.all_obstacles = None
         
         # Initialize instance variables
         self.tanks_destroyed = 0
@@ -126,6 +127,7 @@ class TankGame(arcade.Window):
         self.exploded_tank_list = arcade.SpriteList()
         self.mine_list = arcade.SpriteList()
         self.tracks_list = arcade.SpriteList()
+        self.all_obstacles = arcade.SpriteList()
         
         # Load level from the tilemap
         layer_options = {"Obstacles" : {"use_spatial_hash": True},
@@ -198,9 +200,15 @@ class TankGame(arcade.Window):
                                             elasticity = 1.0,
                                             body_type=arcade.PymunkPhysicsEngine.STATIC)
     
+        for barrier in self.obstacle_list:
+            self.all_obstacles.append(barrier)
+        for barrier in self.breakable_obstacle_list:
+            self.all_obstacles.append(barrier)
+        for barrier in self.explodables_list:
+            self.all_obstacles.append(barrier)
 
         self.astar_barrier_list = arcade.AStarBarrierList(moving_sprite=self.player_sprite,
-                                                          blocking_sprites=self.obstacle_list,
+                                                          blocking_sprites=self.all_obstacles,
                                                           grid_size=56,
                                                           left=-112,
                                                           right=Tanks.SCREEN_WIDTH,
@@ -314,31 +322,15 @@ class TankGame(arcade.Window):
 
         # Apply forces to push player in direction of arrow keys
         # Set friction to 0 temporarily to make the player move faster
-        if self.player_sprite in self.player_list:
+        if self.player_sprite in self.player_list and not self.round_over:
             if self.direction == Tanks.Direction.UP and self.up_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (0, -Tanks.PLAYER_MOVE_FORCE))
                 self.physics_engine.set_friction(self.player_sprite, 0)
                 self.player_sprite.texture = self.player_texture_list[self.direction.value]
 
-                if self.player_sprite.can_track:
-                    # Add tracks sprite at the correct angle and behind the player sprite
-                    self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
-                    self.tracks_sprite.angle = 180
-                    self.tracks_sprite.center_x = self.player_sprite.center_x
-                    self.tracks_sprite.center_y = self.player_sprite.center_y - 10
-                    self.tracks_list.append(self.tracks_sprite)
-                    
-                    # self.total_moves % 4 + 1 retrieves next number for dynamically referencing next move sound
-                    self.move.play()
-
-                    # Reset the track cooldown
-                    self.player_sprite.track_cooldown = 0.3
-                    self.player_sprite.can_track = False
-
-                else:
-                    self.player_sprite.track_cooldown -= delta_time
-                    if self.player_sprite.track_cooldown < 0:
-                        self.player_sprite.can_track = True
+                # Call lay tracks function for UP key pressed
+                self.lay_tracks(180, self.player_sprite.center_x, self.player_sprite.center_y - 10, delta_time)
+                self.move.play()
                 
 
             if self.direction == Tanks.Direction.DOWN and self.down_pressed:
@@ -346,75 +338,28 @@ class TankGame(arcade.Window):
                 self.physics_engine.set_friction(self.player_sprite, 0)
                 self.player_sprite.texture = self.player_texture_list[self.direction.value]
 
-                if self.player_sprite.can_track:
-                    # Add tracks sprite at the correct angle and behind the player sprite
-                    self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
-                    self.tracks_sprite.angle = 180
-                    self.tracks_sprite.center_x = self.player_sprite.center_x
-                    self.tracks_sprite.center_y = self.player_sprite.center_y + 10
-                    self.tracks_list.append(self.tracks_sprite)
-                    
-                    # self.total_moves % 4 + 1 retrieves next number for dynamically referencing next move sound
-                    self.move.play()
-
-                    # Reset the track cooldown
-                    self.player_sprite.track_cooldown = 0.3
-                    self.player_sprite.can_track = False
-
-                else:
-                    self.player_sprite.track_cooldown -= delta_time
-                    if self.player_sprite.track_cooldown < 0:
-                        self.player_sprite.can_track = True
+                # Call lay tracks function for DOWN key pressed
+                self.lay_tracks(180, self.player_sprite.center_x, self.player_sprite.center_y + 10, delta_time)
+                self.move.play()
 
             if self.direction == Tanks.Direction.LEFT and self.left_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (Tanks.PLAYER_MOVE_FORCE, 0))
                 self.physics_engine.set_friction(self.player_sprite, 0)
                 self.player_sprite.texture = self.player_texture_list[self.direction.value]
+
+                # Call lay tracks function for LEFT key pressed
+                self.lay_tracks(90, self.player_sprite.center_x + 10, self.player_sprite.center_y, delta_time)
+                self.move.play()
                 
-                if self.player_sprite.can_track:
-                    # Add tracks sprite at the correct angle and behind the player sprite
-                    self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)   
-                    self.tracks_sprite.angle = 90
-                    self.tracks_sprite.center_x = self.player_sprite.center_x + 10
-                    self.tracks_sprite.center_y = self.player_sprite.center_y
-                    self.tracks_list.append(self.tracks_sprite)
-                    
-                    # self.total_moves % 4 + 1 retrieves next number for dynamically referencing next move sound
-                    self.move.play()
-
-                    # Reset the track cooldown
-                    self.player_sprite.track_cooldown = 0.3
-                    self.player_sprite.can_track = False
-
-                else:
-                    self.player_sprite.track_cooldown -= delta_time
-                    if self.player_sprite.track_cooldown < 0:
-                        self.player_sprite.can_track = True
-
             if self.direction == Tanks.Direction.RIGHT and self.right_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (-Tanks.PLAYER_MOVE_FORCE, 0))
                 self.physics_engine.set_friction(self.player_sprite, 0)
                 self.player_sprite.texture = self.player_texture_list[self.direction.value]
+
+                # Call lay tracks function for RIGHT key pressed
+                self.lay_tracks(90, self.player_sprite.center_x - 10, self.player_sprite.center_y, delta_time)
                 
-                if self.player_sprite.can_track:
-                    # Add tracks sprite at the correct angle and behind the player sprite
-                    self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
-                    self.tracks_sprite.angle = 90
-                    self.tracks_sprite.center_x = self.player_sprite.center_x - 10
-                    self.tracks_sprite.center_y = self.player_sprite.center_y
-                    self.tracks_list.append(self.tracks_sprite)
-                    
-                    # self.total_moves % 4 + 1 retrieves next number for dynamically referencing next move sound
-                    self.move.play()
-
-                    # Reset the track cooldown
-                    self.player_sprite.track_cooldown = 0.3
-                    self.player_sprite.can_track = False
-
-                else:
-                    self.player_sprite.track_cooldown -= delta_time
-                    if self.player_sprite.track_cooldown < 0:
-                        self.player_sprite.can_track = True
+                self.move.play()
                 
             # If no keys are pressed, set the friction to 1 to slow the tank down
             if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
@@ -461,47 +406,40 @@ class TankGame(arcade.Window):
         """
         # Reduce the time to explosion for all mines
         for mine in self.mine_list:
-            if mine.timer(delta_time) >= mine.end_time:
-                # Move it to location of the mine
+            hit_list = arcade.check_for_collision_with_list(mine, self.bullet_list)
+            if len(hit_list) > 0:
+                hit_list[0].remove_from_sprite_lists()
+
+            if mine.timer(delta_time) >= mine.end_time or len(hit_list) > 0:
                 self.explosion_animation(mine.center_x, mine.center_y)
-                
-                for enemy in self.enemy_list:
-                    mine_death_enemy_list = arcade.check_for_collision_with_list(enemy, self.explosions_list)
-                    for mine in mine_death_enemy_list:
-                        # Move it to the location of the enemy x and y
-                        self.explosion_animation(enemy.center_x, enemy.center_y)
-
-                        # Add exploded enemy to exploded tank list
-                        self.exploded_tank_list.append(enemy.exploded)
-
-                        # Remove the enemy tank
-                        enemy.remove_from_sprite_lists()
-                        enemy.turret.remove_from_sprite_lists()
-                        self.tanks_destroyed += 1
-
-                mine_death_player_list = arcade.check_for_collision_with_list(self.player_sprite, self.explosions_list)
-                for mine in mine_death_player_list:
-                    # Move it to the location of the player
-                    self.explosion_animation(self.player_sprite.center_x, self.player_sprite.center_y)
-
-                    # Remove the player tank
-                    self.player_sprite.remove_from_sprite_lists()
-                    self.player_sprite.turret.remove_from_sprite_lists()
-                    # user doesn't win by default
-                    self.round_lost = True
-                    self.player_lives -= 1
-
-                for obstacle in self.breakable_obstacle_list:
-                    hit_list = arcade.check_for_collision_with_list(obstacle, self.explosions_list)
-                    if len(hit_list) > 0:
-                        # Move it to the location of the obstacle
-                        self.explosion_animation(obstacle.center_x, obstacle.center_y)
-
-                        #Remove the obstacle
-                        obstacle.remove_from_sprite_lists()
-
-                # Remove the mine from the sprite list
                 mine.remove_from_sprite_lists()
+                
+        for enemy in self.enemy_list:
+            mine_death_enemy_list = arcade.check_for_collision_with_list(enemy, self.explosions_list)
+            for mine in mine_death_enemy_list:
+                if len(mine_death_enemy_list) > 0:
+                    # Add exploded enemy to exploded tank list
+                    self.exploded_tank_list.append(enemy.exploded)
+
+                    # Remove the enemy tank
+                    enemy.remove_from_sprite_lists()
+                    enemy.turret.remove_from_sprite_lists()
+                    self.tanks_destroyed += 1
+
+        if len(self.player_list) > 0:
+            mine_death_player_list = arcade.check_for_collision_with_list(self.player_sprite, self.explosions_list)
+            if len(mine_death_player_list) > 0:
+                # Remove the player tank
+                self.player_sprite.remove_from_sprite_lists()
+                self.player_sprite.turret.remove_from_sprite_lists()
+                self.round_lost = True
+                self.player_lives -= 1
+
+        for obstacle in self.breakable_obstacle_list:
+            hit_list = arcade.check_for_collision_with_list(obstacle, self.explosions_list)
+            if len(hit_list) > 0:
+                #Remove the obstacle
+                obstacle.remove_from_sprite_lists()
     
     
     def update_bullets(self):
@@ -527,14 +465,14 @@ class TankGame(arcade.Window):
                 
             # Lose if player gets hit
             if arcade.check_for_collision(bullet, self.player_sprite):
-                # Move it to the location of the player
-                self.explosion_animation(self.player_sprite.center_x, self.player_sprite.center_y)
-
                 # Remove the player tank and the bullet
                 self.player_sprite.remove_from_sprite_lists()
                 self.player_sprite.turret.remove_from_sprite_lists()
                 bullet.remove_from_sprite_lists()
                 self.player_sprite.can_shoot = False
+
+                # Move it to the location of the player
+                self.explosion_animation(self.player_sprite.center_x, self.player_sprite.center_y)
                 
                 # user doesn't win by default
                 # lose a life
@@ -545,7 +483,7 @@ class TankGame(arcade.Window):
             hit_list = arcade.check_for_collision_with_list(bullet, self.obstacle_list)
             if len(hit_list) > 0:
                 bullet.num_ricochets += 1
-
+                    
             # explode if an explodable is hit
             for explodable in self.explodables_list:
                 if arcade.check_for_collision(bullet,explodable):
@@ -604,12 +542,17 @@ class TankGame(arcade.Window):
             
             self.setup()
             
-        if not self.player_sprite.can_shoot and not self.round_over:
+        if not self.player_sprite.can_shoot:
             # Player shoot on cooldown, remove delta time
             self.player_sprite.cooldown -= delta_time
             if self.player_sprite.cooldown < 0:
                 self.player_sprite.can_shoot = True
         
+        if not self.player_sprite.can_mine:
+            self.player_sprite.mine_cooldown -= delta_time
+            if self.player_sprite.mine_cooldown < 0:
+                self.player_sprite.can_mine = True
+
 
     def on_update(self, delta_time):
         """
@@ -654,19 +597,19 @@ class TankGame(arcade.Window):
         elif key == arcade.key.D:
             self.right_pressed = True
             self.direction = Tanks.Direction.RIGHT
-        elif key == arcade.key.SPACE:
+        elif key == arcade.key.SPACE and not self.round_over:
             # Create the mine that is dropped
-            self.mine = Tanks.Mine("assets/barrelBlack_top.png", 1)
-            self.mine.center_x = self.player_sprite.center_x
-            self.mine.center_y = self.player_sprite.center_y
-            self.mine_list.append(self.mine)
-            
-
+            if self.player_sprite.can_mine:
+                self.mine = Tanks.Mine("assets/barrelBlack_top.png", 1)
+                self.mine.center_x = self.player_sprite.center_x
+                self.mine.center_y = self.player_sprite.center_y
+                self.mine_list.append(self.mine)
+                self.player_sprite.can_mine = False
+                self.player_sprite.mine_cooldown = Tanks.PLAYER_MINE_COOLDOWN
         # If the game is over and they press escape, close the application
-        if self.game_over and key == arcade.key.ESCAPE:
+        elif self.game_over and key == arcade.key.ESCAPE:
             arcade.close_window()
-
-        if self.round_over and key == arcade.key.ENTER:
+        elif self.round_over and key == arcade.key.ENTER:
             self.round_lost = False
             self.round_over = False
             # play level music
@@ -706,17 +649,18 @@ class TankGame(arcade.Window):
         Called when the user presses a mouse button.
         """
         # If the turret is in a obstacle, don't shoot a bullet
-        hit_list = arcade.check_for_collision_with_list(self.player_sprite.turret, self.obstacle_list)
-        if len(hit_list) == 0:
-            if self.player_sprite.can_shoot:
-                self.shoot_bullet(start_x = self.player_sprite.center_x,
-                                  start_y = self.player_sprite.center_y,
-                                  target_x = x,
-                                  target_y = y)
-                
-                # Reset the players cooldown
-                self.player_sprite.cooldown = Tanks.PLAYER_SHOOT_COOLDOWN
-                self.player_sprite.can_shoot = False
+        if not self.round_over:
+            hit_list = arcade.check_for_collision_with_list(self.player_sprite.turret, self.obstacle_list)
+            if len(hit_list) == 0:
+                if self.player_sprite.can_shoot:
+                    self.shoot_bullet(start_x = self.player_sprite.center_x,
+                                    start_y = self.player_sprite.center_y,
+                                    target_x = x,
+                                    target_y = y)
+                    
+                    # Reset the players cooldown
+                    self.player_sprite.cooldown = Tanks.PLAYER_SHOOT_COOLDOWN
+                    self.player_sprite.can_shoot = False
 
 
     def on_mouse_release(self, x, y, button, key_modifiers):
@@ -790,6 +734,27 @@ class TankGame(arcade.Window):
         self.enemy_sprite.center_y = y
         self.enemy_list.append(self.enemy_sprite)
         self.enemy_turret_list.append(self.enemy_sprite.turret)
+
+
+    def lay_tracks(self, angle_value, center_x, center_y, delta_time):
+        if self.player_sprite.can_track:
+            # Add tracks sprite at the correct angle and behind the player sprite
+            self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
+            self.tracks_sprite.angle = angle_value
+            self.tracks_sprite.center_x = center_x
+            self.tracks_sprite.center_y = center_y
+            self.tracks_list.append(self.tracks_sprite)
+            arcade.play_sound(self.move2)
+
+            # Reset the track cooldown
+            self.player_sprite.track_cooldown = 0.3
+            self.player_sprite.can_track = False
+
+        else:
+            self.player_sprite.track_cooldown -= delta_time
+            if self.player_sprite.track_cooldown < 0:
+                self.player_sprite.can_track = True
+
 
 
 def main():
