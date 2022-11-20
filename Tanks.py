@@ -85,6 +85,7 @@ class EnemyTank(arcade.Sprite):
         self.path_idx = 0
         self.difficulty = difficulty
         self.can_shoot = False
+        self.reaction_time = 1.0
         self.cooldown = cooldown
         self.move_cooldown = MOVE_COOLDOWN
         self.move_rand_int = 0
