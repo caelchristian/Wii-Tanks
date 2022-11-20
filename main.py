@@ -365,8 +365,10 @@ class TankGame(arcade.Window):
         # Reduce the time to explosion for all mines
         for mine in self.mine_list:
             hit_list = arcade.check_for_collision_with_list(mine, self.bullet_list)
-            if mine.timer(delta_time) >= mine.end_time or len(hit_list) > 0:
+            if len(hit_list) > 0:
                 hit_list[0].remove_from_sprite_lists()
+
+            if mine.timer(delta_time) >= mine.end_time or len(hit_list) > 0:
                 self.explosion_animation(mine.center_x, mine.center_y)
                 mine.remove_from_sprite_lists()
                 
@@ -439,12 +441,6 @@ class TankGame(arcade.Window):
             hit_list = arcade.check_for_collision_with_list(bullet, self.obstacle_list)
             if len(hit_list) > 0:
                 bullet.num_ricochets += 1
-                
-            # remove breakable obstacle if hit
-            for obstacle in self.breakable_obstacle_list:
-                if arcade.check_for_collision(bullet, obstacle):
-                    obstacle.remove_from_sprite_lists()
-                    bullet.remove_from_sprite_lists()
                     
             # explode if an explodable is hit
             for explodable in self.explodables_list:
