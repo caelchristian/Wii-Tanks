@@ -405,8 +405,13 @@ class TankGame(arcade.Window):
             enemy.move(self.physics_engine, self.astar_barrier_list, self.player_sprite.position, self.obstacle_list)
 
             # Shoot bullet if the player tank is in sight of the enemy
-            if enemy.can_shoot and arcade.has_line_of_sight(enemy.position, self.player_sprite.position, walls=self.obstacle_list):
+            if arcade.has_line_of_sight(enemy.position, self.player_sprite.position, walls=self.obstacle_list) and \
+                arcade.has_line_of_sight(enemy.position, self.player_sprite.position, walls=self.breakable_obstacle_list):
+                enemy.reaction_time -= delta_time
+
+            if enemy.can_shoot and enemy.reaction_time < 0:
                 self.shoot_bullet(enemy.center_x, enemy.center_y, enemy.player_x, enemy.player_y)
+                enemy.reaction_time = Tanks.ENEMY_REACTION_TIME
                     
                 # Reset the shoot cooldown
                 if(enemy.difficulty == Tanks.Difficulty.EASY):

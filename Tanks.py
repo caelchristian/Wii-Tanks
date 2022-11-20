@@ -19,6 +19,7 @@ PLAYER_MINE_COOLDOWN = 5
 EASY_ENEMY_SHOOT_COOLDOWN = 7
 MEDIUM_ENEMY_SHOOT_COOLDOWN = 5
 HARD_ENEMY_SHOOT_COOLDOWN = 3 
+ENEMY_REACTION_TIME = 2
 PLAYER_TRACK_COOLDOWN = 0.3
 MOVE_COOLDOWN = 1
 MINE_EXPLODE_TIME = 3
@@ -107,6 +108,7 @@ class EnemyTank(arcade.Sprite):
         self.cooldown = cooldown
         self.move_cooldown = MOVE_COOLDOWN
         self.move_rand_int = 0
+        self.reaction_time = ENEMY_REACTION_TIME
 
     def update(self):
         """ Update the enemy tank
