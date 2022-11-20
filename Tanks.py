@@ -163,16 +163,16 @@ class EnemyTank(arcade.Sprite):
                 # Move up, down, left or right based on the random int
                 if self.move_rand_int == 1:
                     physics_engine.apply_force(self, (0, ENEMY_MOVE_FORCE))
-                    self.texture = self.texture_list[Direction.DOWN.value]
+                    self.texture = self.texture_list[Direction.UP.value]
                 elif self.move_rand_int == 2:
                     physics_engine.apply_force(self, (0, -ENEMY_MOVE_FORCE))
-                    self.texture = self.texture_list[Direction.UP.value]
+                    self.texture = self.texture_list[Direction.DOWN.value]
                 elif self.move_rand_int == 3:
                     physics_engine.apply_force(self, (-ENEMY_MOVE_FORCE, 0))
-                    self.texture = self.texture_list[Direction.RIGHT.value]
+                    self.texture = self.texture_list[Direction.LEFT.value]
                 elif self.move_rand_int == 4:
                     physics_engine.apply_force(self, (ENEMY_MOVE_FORCE, 0))
-                    self.texture = self.texture_list[Direction.LEFT.value]
+                    self.texture = self.texture_list[Direction.RIGHT.value]
                 else:
                     # Random chance to not move at all
                     pass
@@ -191,17 +191,17 @@ class EnemyTank(arcade.Sprite):
                     if abs(x_diff) >= 10:
                         if x_diff > 0:
                             physics_engine.apply_force(self, (-ENEMY_MOVE_FORCE, 0))
-                            self.texture = self.texture_list[Direction.UP.value]
+                            self.texture = self.texture_list[Direction.LEFT.value]
                         else:
                             physics_engine.apply_force(self, (ENEMY_MOVE_FORCE, 0))
-                            self.texture = self.texture_list[Direction.DOWN.value]
+                            self.texture = self.texture_list[Direction.RIGHT.value]
                     else:
                         if y_diff > 0:
                             physics_engine.apply_force(self, (0, -ENEMY_MOVE_FORCE))
-                            self.texture = self.texture_list[Direction.RIGHT.value]
+                            self.texture = self.texture_list[Direction.DOWN.value]
                         else:
                             physics_engine.apply_force(self, (0, ENEMY_MOVE_FORCE))
-                            self.texture = self.texture_list[Direction.LEFT.value]
+                            self.texture = self.texture_list[Direction.UP.value]
             
 class Explosion(arcade.Sprite):
     """ 

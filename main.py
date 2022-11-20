@@ -38,6 +38,7 @@ class TankGame(arcade.Window):
         self.exploded_tank_list = None
         self.mine_list = None
         self.tracks_list = None
+        self.all_obstacles = None
         
         # Initialize instance variables
         self.tanks_destroyed = 0
@@ -116,6 +117,7 @@ class TankGame(arcade.Window):
         self.exploded_tank_list = arcade.SpriteList()
         self.mine_list = arcade.SpriteList()
         self.tracks_list = arcade.SpriteList()
+        self.all_obstacles = arcade.SpriteList()
         
         # Load level from the tilemap
         layer_options = {"Obstacles" : {"use_spatial_hash": True},
@@ -188,9 +190,15 @@ class TankGame(arcade.Window):
                                             elasticity = 1.0,
                                             body_type=arcade.PymunkPhysicsEngine.STATIC)
     
+        for barrier in self.obstacle_list:
+            self.all_obstacles.append(barrier)
+        for barrier in self.breakable_obstacle_list:
+            self.all_obstacles.append(barrier)
+        for barrier in self.explodables_list:
+            self.all_obstacles.append(barrier)
 
         self.astar_barrier_list = arcade.AStarBarrierList(moving_sprite=self.player_sprite,
-                                                          blocking_sprites=self.obstacle_list,
+                                                          blocking_sprites=self.all_obstacles,
                                                           grid_size=56,
                                                           left=-112,
                                                           right=Tanks.SCREEN_WIDTH,
@@ -283,7 +291,7 @@ class TankGame(arcade.Window):
 
         # Apply forces to push player in direction of arrow keys
         # Set friction to 0 temporarily to make the player move faster
-        if self.player_sprite in self.player_list:
+        if self.player_sprite in self.player_list and not self.round_over:
             if self.direction == Tanks.Direction.UP and self.up_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (0, -Tanks.PLAYER_MOVE_FORCE))
                 self.physics_engine.set_friction(self.player_sprite, 0)
@@ -543,7 +551,7 @@ class TankGame(arcade.Window):
         elif key == arcade.key.D:
             self.right_pressed = True
             self.direction = Tanks.Direction.RIGHT
-        elif key == arcade.key.SPACE:
+        elif key == arcade.key.SPACE and not self.round_over:
             # Create the mine that is dropped
             if self.player_sprite.can_mine:
                 self.mine = Tanks.Mine("assets/barrelBlack_top.png", 1)
@@ -552,13 +560,10 @@ class TankGame(arcade.Window):
                 self.mine_list.append(self.mine)
                 self.player_sprite.can_mine = False
                 self.player_sprite.mine_cooldown = Tanks.PLAYER_MINE_COOLDOWN
-            
-
         # If the game is over and they press escape, close the application
-        if self.game_over and key == arcade.key.ESCAPE:
+        elif self.game_over and key == arcade.key.ESCAPE:
             arcade.close_window()
-
-        if self.round_over and key == arcade.key.ENTER:
+        elif self.round_over and key == arcade.key.ENTER:
             self.round_lost = False
             self.round_over = False
             
