@@ -54,7 +54,7 @@ class TankGame(arcade.Window):
         self.round_over = False
         self.round_lost = False
         self.level_num = 1
-        self.level_num_max = 4
+        self.level_num_max = 1
         self.player_lives = 3
         self.max_player_lives = 5
 
@@ -269,38 +269,49 @@ class TankGame(arcade.Window):
                                 width=Tanks.SCREEN_WIDTH,
                                 align="center")
             
-        # Winning screen
-        elif self.game_over and not self.game_lost:
-            arcade.draw_text(text=f"You won the game! \nPress the escape key to exit.", 
+        # if they finish game (win or lose) display results
+        elif self.game_over:
+            arcade.draw_text(text=f"Results:\n",
                             start_x=0, 
-                            start_y=400,
-                            font_size=48,
+                            start_y=600,
+                            font_size=58,
                             font_name="Kenney Mini Square",
                             color=arcade.color.BLACK,
                             width=Tanks.SCREEN_WIDTH,
-                            align="center")
+                            align="center",
+                            )
             
-        # Losing screen
-        elif self.game_over and self.game_lost:
-            arcade.draw_text(text=f"Results:",
+            arcade.draw_text(text=f"Tanks destroyed: {self.tanks_destroyed}\n" +
+                             f"Levels cleared: {self.level_num-1}/{self.level_num_max}",
                             start_x=0, 
                             start_y=500,
+                            font_size=42,
+                            font_name="Kenney Mini Square",
+                            color=arcade.color.BLACK,
+                            width=Tanks.SCREEN_WIDTH,
+                            align="center",
+                            )
+            
+            arcade.draw_text(text=f"Press the escape key to exit.",
+                start_x=0, 
+                start_y=100,
+                font_size=32,
+                font_name="Kenney Mini Square",
+                color=arcade.color.BLACK,
+                width=Tanks.SCREEN_WIDTH,
+                align="center")
+
+            # Winning Screen
+            if not self.game_lost:
+                arcade.draw_text(text=f"You won the game!", 
+                            start_x=0, 
+                            start_y=700,
                             font_size=48,
                             font_name="Kenney Mini Square",
                             color=arcade.color.BLACK,
                             width=Tanks.SCREEN_WIDTH,
                             align="center")
-            
-            arcade.draw_text(text=f"Tanks destroyed: {self.tanks_destroyed} \n" +
-                             f"Levels cleared: {self.level_num}",
-                            start_x=0, 
-                            start_y=400,
-                            font_size=38,
-                            font_name="Kenney Mini Square",
-                            color=arcade.color.BLACK,
-                            width=Tanks.SCREEN_WIDTH,
-                            align="center")
-            
+                
         # Transition screen
         elif self.round_over:     
             # display next level numbers, num of enemy tanks, and lives remaining
@@ -529,7 +540,7 @@ class TankGame(arcade.Window):
                     self.player = self.round_win.play()
             
             self.end_level_time -= delta_time
-
+            
         if self.level_num > self.level_num_max and self.player_lives > 0:
             self.game_over = True
             self.game_lost = False
@@ -541,14 +552,15 @@ class TankGame(arcade.Window):
         # if transition time over
         if self.end_level_time < 0:
             self.round_over = True
-            if not self.round_lost:
+            if not self.round_lost and not self.game_over:
                 self.level_num += 1
             self.end_level_time = Tanks.END_LEVEL_TIME
             # extra life
-            if self.level_num != 0 and self.level_num % 5 == 0:
-                self.player_lives += 1
-                self.player = self.extra_life.play()
-            elif self.game_over:
+            # if self.level_num != 0 and self.level_num % 5 == 0:
+            #     self.player_lives += 1
+            #     self.player = self.extra_life.play()
+            # game_over hasn't been set yet (have to use this)
+            if self.game_over or self.level_num > self.level_num_max:
                 self.player = self.results.play()
             else:
                 self.player = self.round_start.play()
@@ -558,7 +570,8 @@ class TankGame(arcade.Window):
         if not self.player_sprite.can_shoot:
             # Player shoot on cooldown, remove delta time
             self.player_sprite.cooldown -= delta_time
-            if self.player_sprite.cooldown < 0:
+            # stops player from shooting after death
+            if self.player_sprite.cooldown < 0 and self.end_level_time == Tanks.END_LEVEL_TIME:
                 self.player_sprite.can_shoot = True
         
         if not self.player_sprite.can_mine:
