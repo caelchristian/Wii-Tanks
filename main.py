@@ -289,23 +289,8 @@ class TankGame(arcade.Window):
                 self.physics_engine.set_friction(self.player_sprite, 0)
                 self.player_sprite.texture = self.player_texture_list[self.direction.value]
 
-                if self.player_sprite.can_track:
-                    # Add tracks sprite at the correct angle and behind the player sprite
-                    self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
-                    self.tracks_sprite.angle = 180
-                    self.tracks_sprite.center_x = self.player_sprite.center_x
-                    self.tracks_sprite.center_y = self.player_sprite.center_y - 10
-                    self.tracks_list.append(self.tracks_sprite)
-                    arcade.play_sound(self.move2)
-
-                    # Reset the track cooldown
-                    self.player_sprite.track_cooldown = 0.3
-                    self.player_sprite.can_track = False
-
-                else:
-                    self.player_sprite.track_cooldown -= delta_time
-                    if self.player_sprite.track_cooldown < 0:
-                        self.player_sprite.can_track = True
+                # Call lay tracks function for UP key pressed
+                self.lay_tracks(180, self.player_sprite.center_x, self.player_sprite.center_y - 10, delta_time)
                 
 
             if self.direction == Tanks.Direction.DOWN and self.down_pressed:
@@ -313,69 +298,26 @@ class TankGame(arcade.Window):
                 self.physics_engine.set_friction(self.player_sprite, 0)
                 self.player_sprite.texture = self.player_texture_list[self.direction.value]
 
-                if self.player_sprite.can_track:
-                    # Add tracks sprite at the correct angle and behind the player sprite
-                    self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
-                    self.tracks_sprite.angle = 180
-                    self.tracks_sprite.center_x = self.player_sprite.center_x
-                    self.tracks_sprite.center_y = self.player_sprite.center_y + 10
-                    self.tracks_list.append(self.tracks_sprite)
-                    arcade.play_sound(self.move2)
-
-                    # Reset the track cooldown
-                    self.player_sprite.track_cooldown = 0.3
-                    self.player_sprite.can_track = False
-
-                else:
-                    self.player_sprite.track_cooldown -= delta_time
-                    if self.player_sprite.track_cooldown < 0:
-                        self.player_sprite.can_track = True
+                # Call lay tracks function for DOWN key pressed
+                self.lay_tracks(180, self.player_sprite.center_x, self.player_sprite.center_y + 10, delta_time)
 
             if self.direction == Tanks.Direction.LEFT and self.left_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (Tanks.PLAYER_MOVE_FORCE, 0))
                 self.physics_engine.set_friction(self.player_sprite, 0)
                 self.player_sprite.texture = self.player_texture_list[self.direction.value]
+
+                # Call lay tracks function for LEFT key pressed
+                self.lay_tracks(90, self.player_sprite.center_x + 10, self.player_sprite.center_y, delta_time)
                 
-                if self.player_sprite.can_track:
-                    # Add tracks sprite at the correct angle and behind the player sprite
-                    self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)   
-                    self.tracks_sprite.angle = 90
-                    self.tracks_sprite.center_x = self.player_sprite.center_x + 10
-                    self.tracks_sprite.center_y = self.player_sprite.center_y
-                    self.tracks_list.append(self.tracks_sprite)
-                    arcade.play_sound(self.move2)
-
-                    # Reset the track cooldown
-                    self.player_sprite.track_cooldown = 0.3
-                    self.player_sprite.can_track = False
-
-                else:
-                    self.player_sprite.track_cooldown -= delta_time
-                    if self.player_sprite.track_cooldown < 0:
-                        self.player_sprite.can_track = True
 
             if self.direction == Tanks.Direction.RIGHT and self.right_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (-Tanks.PLAYER_MOVE_FORCE, 0))
                 self.physics_engine.set_friction(self.player_sprite, 0)
                 self.player_sprite.texture = self.player_texture_list[self.direction.value]
+
+                # Call lay tracks function for RIGHT key pressed
+                self.lay_tracks(90, self.player_sprite.center_x - 10, self.player_sprite.center_y, delta_time)
                 
-                if self.player_sprite.can_track:
-                    # Add tracks sprite at the correct angle and behind the player sprite
-                    self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
-                    self.tracks_sprite.angle = 90
-                    self.tracks_sprite.center_x = self.player_sprite.center_x - 10
-                    self.tracks_sprite.center_y = self.player_sprite.center_y
-                    self.tracks_list.append(self.tracks_sprite)
-                    arcade.play_sound(self.move2)
-
-                    # Reset the track cooldown
-                    self.player_sprite.track_cooldown = 0.3
-                    self.player_sprite.can_track = False
-
-                else:
-                    self.player_sprite.track_cooldown -= delta_time
-                    if self.player_sprite.track_cooldown < 0:
-                        self.player_sprite.can_track = True
                 
             # If no keys are pressed, set the friction to 1 to slow the tank down
             if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
@@ -743,6 +685,27 @@ class TankGame(arcade.Window):
         self.enemy_sprite.center_y = y
         self.enemy_list.append(self.enemy_sprite)
         self.enemy_turret_list.append(self.enemy_sprite.turret)
+
+
+    def lay_tracks(self, angle_value, center_x, center_y, delta_time):
+        if self.player_sprite.can_track:
+            # Add tracks sprite at the correct angle and behind the player sprite
+            self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
+            self.tracks_sprite.angle = angle_value
+            self.tracks_sprite.center_x = center_x
+            self.tracks_sprite.center_y = center_y
+            self.tracks_list.append(self.tracks_sprite)
+            arcade.play_sound(self.move2)
+
+            # Reset the track cooldown
+            self.player_sprite.track_cooldown = 0.3
+            self.player_sprite.can_track = False
+
+        else:
+            self.player_sprite.track_cooldown -= delta_time
+            if self.player_sprite.track_cooldown < 0:
+                self.player_sprite.can_track = True
+
 
 
 def main():
