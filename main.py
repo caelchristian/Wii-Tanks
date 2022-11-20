@@ -93,10 +93,6 @@ class TankGame(arcade.Window):
         self.extra_life = arcade.sound.load_sound("sounds/Extra Tank.wav")
         self.move = arcade.load_sound("sounds/move.wav")
         
-        # delete later
-        # https://pythonhosted.org/pyglet/programming_guide/playing_sounds_and_music.html
-        # self.move = pyglet.resource.media(f'sounds/move.wav', streaming=False)
-        
         # game sfx
         self.whistle = arcade.load_sound("sounds/whistle.wav")
         self.round_start = arcade.load_sound("sounds/Round Start.wav")
@@ -316,7 +312,7 @@ class TankGame(arcade.Window):
                             align="center")
                 
         # Transition screen
-        elif self.round_over:     
+        elif self.round_over:
             # display next level numbers, num of enemy tanks, and lives remaining
             arcade.draw_text(text=f"Mission {self.level_num}", 
                             start_x=0, 
@@ -328,13 +324,21 @@ class TankGame(arcade.Window):
                             align="center")
             arcade.draw_text(text=f" x {self.player_lives}", 
                         start_x=40, 
-                        start_y=130,
+                        start_y=230,
                         font_size=48,
                         font_name="Kenney Mini Square",
                         color=arcade.color.BLACK,
                         width=Tanks.SCREEN_WIDTH,
                         align="center")
-            arcade.draw_texture_rectangle(center_x=500, center_y=150, width=100, height=50 ,texture=self.tank_icon)
+            arcade.draw_text(text=f"Press enter to continue.", 
+                        start_x=40, 
+                        start_y=50,
+                        font_size=48,
+                        font_name="Kenney Mini Square",
+                        color=arcade.color.BLACK,
+                        width=Tanks.SCREEN_WIDTH,
+                        align="center")
+            arcade.draw_texture_rectangle(center_x=500, center_y=250, width=100, height=50 ,texture=self.tank_icon)
             if self.level_num == self.level_num_max:
                 arcade.draw_text(text="Final level!", 
                         start_x=0, 
@@ -452,7 +456,6 @@ class TankGame(arcade.Window):
                     # Add exploded enemy to exploded tank list
                     self.exploded_tank_list.append(enemy.exploded)
 
-                    # Remove the enemy tank
                     enemy.remove_from_sprite_lists()
                     enemy.turret.remove_from_sprite_lists()
                     self.tanks_destroyed += 1
@@ -460,7 +463,6 @@ class TankGame(arcade.Window):
         if len(self.player_list) > 0:
             mine_death_player_list = arcade.check_for_collision_with_list(self.player_sprite, self.explosions_list)
             if len(mine_death_player_list) > 0:
-                # Remove the player tank
                 self.player_sprite.remove_from_sprite_lists()
                 self.player_sprite.turret.remove_from_sprite_lists()
                 self.round_lost = True
@@ -469,7 +471,6 @@ class TankGame(arcade.Window):
         for obstacle in self.breakable_obstacle_list:
             hit_list = arcade.check_for_collision_with_list(obstacle, self.explosions_list)
             if len(hit_list) > 0:
-                #Remove the obstacle
                 obstacle.remove_from_sprite_lists()
     
     
@@ -700,13 +701,6 @@ class TankGame(arcade.Window):
                     self.player_sprite.can_shoot = False
 
 
-    def on_mouse_release(self, x, y, button, key_modifiers):
-        """
-        Called when a user releases a mouse button.
-        Not implemented yet.
-        """
-        pass
-
     def explosion_animation(self, x, y):
         """
         An explosion function that creates an explosion animation
@@ -751,7 +745,7 @@ class TankGame(arcade.Window):
         # Add the bullet to the sprite list to be drawn
         self.bullet_list.append(bullet)
         
-        arcade.play_sound(self.shoot2, volume=.8)
+        arcade.play_sound(self.shoot2, volume=.6)
             
             
     def add_enemy_tank(self, x, y, difficulty):
