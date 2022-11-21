@@ -553,6 +553,11 @@ class TankGame(arcade.Window):
             else:
                 self.player = self.round_start.play(volume=.5)
             
+            # Clear the screen
+            self.bullet_list = arcade.SpriteList()
+            self.enemy_list = arcade.SpriteList()
+            self.mine_list = arcade.SpriteList()
+            
         if not self.player_sprite.can_shoot:
             # Player shoot on cooldown, remove delta time
             self.player_sprite.cooldown -= delta_time
