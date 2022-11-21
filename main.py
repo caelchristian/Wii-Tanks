@@ -557,9 +557,6 @@ class TankGame(arcade.Window):
                 self.player = self.results.play(volume=.5)
             else:
                 self.player = self.round_start.play(volume=.5)
-
-            if not self.game_over:
-                self.setup()
             
         if not self.player_sprite.can_shoot:
             # Player shoot on cooldown, remove delta time
@@ -627,6 +624,7 @@ class TankGame(arcade.Window):
         elif self.game_over and key == arcade.key.ESCAPE:
             arcade.close_window()
         elif self.round_over and key == arcade.key.ENTER and not self.game_over:
+            self.setup()
             self.round_lost = False
             self.round_over = False
             # play level music
