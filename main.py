@@ -90,7 +90,6 @@ class TankGame(arcade.Window):
         self.explode2 = arcade.sound.load_sound("sounds/explode2.wav")
         self.richochet1 = arcade.sound.load_sound("sounds/richochet1.wav")
         self.richochet2 = arcade.sound.load_sound("sounds/richochet2.wav")
-        self.extra_life = arcade.sound.load_sound("sounds/Extra Tank.wav")
         self.move = arcade.load_sound("sounds/move.wav")
         
         # Game sfx
@@ -311,12 +310,22 @@ class TankGame(arcade.Window):
             # display next level numbers, num of enemy tanks, and lives remaining
             arcade.draw_text(text=f"Mission {self.level_num}", 
                             start_x=0, 
-                            start_y=600,
+                            start_y=700,
                             font_size=48,
                             font_name="Kenney Mini Square",
                             color=arcade.color.BLACK,
                             width=Tanks.SCREEN_WIDTH,
-                            align="center")
+                            align="center"
+                            )
+            arcade.draw_text(text=f"Tanks destroyed: {self.tanks_destroyed}",
+                            start_x=0, 
+                            start_y=500,
+                            font_size=42,
+                            font_name="Kenney Mini Square",
+                            color=arcade.color.BLACK,
+                            width=Tanks.SCREEN_WIDTH,
+                            align="center",
+                            )
             arcade.draw_text(text=f" x {self.player_lives}", 
                         start_x=40, 
                         start_y=230,
@@ -549,10 +558,6 @@ class TankGame(arcade.Window):
                     self.game_lost = False
             self.end_level_time = Tanks.END_LEVEL_TIME
 
-            if self.level_num != 0 and self.level_num % 5 == 0:
-                self.player_lives += 1
-                self.player = self.extra_life.play()
-
             if self.game_over or self.level_num > self.level_num_max:
                 self.player = self.results.play(volume=.5)
             else:
@@ -766,7 +771,7 @@ class TankGame(arcade.Window):
             self.tracks_sprite.center_y = center_y
             self.tracks_list.append(self.tracks_sprite)
             
-            arcade.play_sound(self.move, volume=.3)
+            arcade.play_sound(self.move, volume=.2)
 
             # Reset the track cooldown
             sprite.track_cooldown = 0.3
