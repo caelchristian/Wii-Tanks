@@ -145,7 +145,7 @@ class EnemyTank(arcade.Sprite):
             pass
         else:
             # Calculate path to player tank
-            if self.path is None or self.path == [] or self.path_idx > len(self.path) - 1:
+            if self.difficulty == Difficulty.HARD and (self.path is None or self.path == [] or self.path_idx > len(self.path) - 1):
                 self.path_idx = 0
                 self.path = arcade.astar_calculate_path(self.position,
                                                 player_position,
