@@ -392,16 +392,6 @@ class TankGame(arcade.Window):
 
             enemy.move(self.physics_engine, self.astar_barrier_list, self.player_sprite.position, self.obstacle_list)
 
-            if enemy.direction == Tanks.Direction.UP:
-                self.lay_tracks(180, enemy.center_x, enemy.center_y - 10, delta_time, enemy)
-            if enemy.direction == Tanks.Direction.DOWN:
-                self.lay_tracks(180, enemy.center_x, enemy.center_y + 10, delta_time, enemy)
-            if enemy.direction == Tanks.Direction.RIGHT:
-                self.lay_tracks(90, enemy.center_x - 10, enemy.center_y, delta_time, enemy)
-            if enemy.direction == Tanks.Direction.LEFT:
-                self.lay_tracks(90, enemy.center_x + 10, enemy.center_y, delta_time, enemy)
-
-
             # Shoot bullet if the player tank is in sight of the enemy
             if arcade.has_line_of_sight(enemy.position, self.player_sprite.position, walls=self.obstacle_list) and \
                 arcade.has_line_of_sight(enemy.position, self.player_sprite.position, walls=self.breakable_obstacle_list):

@@ -109,8 +109,6 @@ class EnemyTank(arcade.Sprite):
         self.move_cooldown = MOVE_COOLDOWN
         self.move_rand_int = 0
         self.reaction_time = ENEMY_REACTION_TIME
-        self.track_cooldown = PLAYER_TRACK_COOLDOWN
-        self.can_track = True
         self.direction = 0
 
     def update(self):
