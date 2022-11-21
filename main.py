@@ -357,25 +357,25 @@ class TankGame(arcade.Window):
                 self.physics_engine.apply_force(self.player_sprite, (0, -Tanks.PLAYER_MOVE_FORCE))
                 self.physics_engine.set_friction(self.player_sprite, 0)
                 self.player_sprite.texture = self.player_texture_list[self.direction.value]
-                self.lay_tracks(180, self.player_sprite.center_x, self.player_sprite.center_y - 10, delta_time)
+                self.lay_tracks(180, self.player_sprite.center_x, self.player_sprite.center_y - 10, delta_time, self.player_sprite)
 
             if self.direction == Tanks.Direction.DOWN and self.down_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (0, Tanks.PLAYER_MOVE_FORCE))
                 self.physics_engine.set_friction(self.player_sprite, 0)
                 self.player_sprite.texture = self.player_texture_list[self.direction.value]
-                self.lay_tracks(180, self.player_sprite.center_x, self.player_sprite.center_y + 10, delta_time)
+                self.lay_tracks(180, self.player_sprite.center_x, self.player_sprite.center_y + 10, delta_time, self.player_sprite)
 
             if self.direction == Tanks.Direction.LEFT and self.left_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (Tanks.PLAYER_MOVE_FORCE, 0))
                 self.physics_engine.set_friction(self.player_sprite, 0)
                 self.player_sprite.texture = self.player_texture_list[self.direction.value]
-                self.lay_tracks(90, self.player_sprite.center_x + 10, self.player_sprite.center_y, delta_time)
+                self.lay_tracks(90, self.player_sprite.center_x + 10, self.player_sprite.center_y, delta_time, self.player_sprite)
                 
             if self.direction == Tanks.Direction.RIGHT and self.right_pressed:
                 self.physics_engine.apply_force(self.player_sprite, (-Tanks.PLAYER_MOVE_FORCE, 0))
                 self.physics_engine.set_friction(self.player_sprite, 0)
                 self.player_sprite.texture = self.player_texture_list[self.direction.value]
-                self.lay_tracks(90, self.player_sprite.center_x - 10, self.player_sprite.center_y, delta_time)
+                self.lay_tracks(90, self.player_sprite.center_x - 10, self.player_sprite.center_y, delta_time, self.player_sprite)
                 
             # If no keys are pressed, set the friction to 1 to slow the tank down
             if not self.right_pressed and not self.left_pressed and not self.up_pressed and not self.down_pressed:
@@ -392,6 +392,16 @@ class TankGame(arcade.Window):
             enemy.player_y = self.player_sprite.center_y
 
             enemy.move(self.physics_engine, self.astar_barrier_list, self.player_sprite.position, self.obstacle_list)
+
+            if enemy.direction == Tanks.Direction.UP:
+                self.lay_tracks(180, enemy.center_x, enemy.center_y - 10, delta_time, enemy)
+            if enemy.direction == Tanks.Direction.DOWN:
+                self.lay_tracks(180, enemy.center_x, enemy.center_y + 10, delta_time, enemy)
+            if enemy.direction == Tanks.Direction.RIGHT:
+                self.lay_tracks(90, enemy.center_x - 10, enemy.center_y, delta_time, enemy)
+            if enemy.direction == Tanks.Direction.LEFT:
+                self.lay_tracks(90, enemy.center_x + 10, enemy.center_y, delta_time, enemy)
+
 
             # Shoot bullet if the player tank is in sight of the enemy
             if arcade.has_line_of_sight(enemy.position, self.player_sprite.position, walls=self.obstacle_list) and \
@@ -737,7 +747,7 @@ class TankGame(arcade.Window):
         self.enemy_list.append(self.enemy_sprite)
         self.enemy_turret_list.append(self.enemy_sprite.turret)
 
-    def lay_tracks(self, angle_value, center_x, center_y, delta_time):
+    def lay_tracks(self, angle_value, center_x, center_y, delta_time, sprite):
         """ Lays a track sprite at the given location and given angle
 
         Args:
@@ -746,8 +756,10 @@ class TankGame(arcade.Window):
             center_y (int): the y coordinate for the track
             delta_time (float): time passed since last update
         """
-        if self.player_sprite.can_track:
-            # Add tracks sprite at the correct angle and behind the player sprite
+
+        # Add tracks sprite at the correct angle and behind the player or enemy sprite
+        if sprite.can_track:
+            # Add tracks sprite at the correct angle and behind the player or enemy sprite
             self.tracks_sprite = arcade.Sprite("assets/tracksSmall.png", 0.5)
             self.tracks_sprite.angle = angle_value
             self.tracks_sprite.center_x = center_x
@@ -757,13 +769,15 @@ class TankGame(arcade.Window):
             arcade.play_sound(self.move, volume=.3)
 
             # Reset the track cooldown
-            self.player_sprite.track_cooldown = 0.3
-            self.player_sprite.can_track = False
+            sprite.track_cooldown = 0.3
+            sprite.can_track = False
 
         else:
-            self.player_sprite.track_cooldown -= delta_time
-            if self.player_sprite.track_cooldown < 0:
-                self.player_sprite.can_track = True
+            sprite.track_cooldown -= delta_time
+            if sprite.track_cooldown < 0:
+                sprite.can_track = True
+
+
 
 def main():
     """ 

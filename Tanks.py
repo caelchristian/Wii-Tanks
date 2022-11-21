@@ -109,6 +109,9 @@ class EnemyTank(arcade.Sprite):
         self.move_cooldown = MOVE_COOLDOWN
         self.move_rand_int = 0
         self.reaction_time = ENEMY_REACTION_TIME
+        self.track_cooldown = PLAYER_TRACK_COOLDOWN
+        self.can_track = True
+        self.direction = 0
 
     def update(self):
         """ Update the enemy tank
@@ -166,15 +169,19 @@ class EnemyTank(arcade.Sprite):
                 if self.move_rand_int == 1:
                     physics_engine.apply_force(self, (0, ENEMY_MOVE_FORCE))
                     self.texture = self.texture_list[Direction.UP.value]
+                    self.direction = Direction.UP
                 elif self.move_rand_int == 2:
                     physics_engine.apply_force(self, (0, -ENEMY_MOVE_FORCE))
                     self.texture = self.texture_list[Direction.DOWN.value]
+                    self.direction = Direction.DOWN
                 elif self.move_rand_int == 3:
                     physics_engine.apply_force(self, (-ENEMY_MOVE_FORCE, 0))
                     self.texture = self.texture_list[Direction.LEFT.value]
+                    self.direction = Direction.LEFT
                 elif self.move_rand_int == 4:
                     physics_engine.apply_force(self, (ENEMY_MOVE_FORCE, 0))
                     self.texture = self.texture_list[Direction.RIGHT.value]
+                    self.direction = Direction.RIGHT
                 else:
                     # Random chance to not move at all
                     pass
@@ -194,16 +201,20 @@ class EnemyTank(arcade.Sprite):
                         if x_diff > 0:
                             physics_engine.apply_force(self, (-ENEMY_MOVE_FORCE, 0))
                             self.texture = self.texture_list[Direction.LEFT.value]
+                            self.direction = Direction.LEFT
                         else:
                             physics_engine.apply_force(self, (ENEMY_MOVE_FORCE, 0))
                             self.texture = self.texture_list[Direction.RIGHT.value]
+                            self.direction = Direction.RIGHT
                     else:
                         if y_diff > 0:
                             physics_engine.apply_force(self, (0, -ENEMY_MOVE_FORCE))
                             self.texture = self.texture_list[Direction.DOWN.value]
+                            self.direction = Direction.DOWN
                         else:
                             physics_engine.apply_force(self, (0, ENEMY_MOVE_FORCE))
                             self.texture = self.texture_list[Direction.UP.value]
+                            self.direction = Direction.UP
             
 class Explosion(arcade.Sprite):
     """ 
