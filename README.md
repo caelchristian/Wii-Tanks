@@ -17,3 +17,5 @@ This is a Python implementation of the Wii Play Tanks game, made using the Pytho
 - You can plant a mine using the Space bar
 - Try and beat all the levels by destroying the enemy tanks!
 
+## Assets/Sounds Source
+We did not create the assets nor the sounds used in the game. They were sourced from the website https://kenney-assets.itch.io/top-down-tanks-redux
