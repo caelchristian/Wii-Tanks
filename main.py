@@ -449,7 +449,7 @@ class TankGame(arcade.Window):
 
         if len(self.player_list) > 0:
             mine_death_player_list = arcade.check_for_collision_with_list(self.player_sprite, self.explosions_list)
-            if len(mine_death_player_list) > 0:
+            if len(mine_death_player_list) > 0 and (self.player_sprite in self.player_list):
                 self.player_sprite.remove_from_sprite_lists()
                 self.player_sprite.turret.remove_from_sprite_lists()
                 if len(self.enemy_list) != 0:
@@ -477,7 +477,7 @@ class TankGame(arcade.Window):
                 self.tanks_destroyed += 1
                 
             # Lose if player gets hit
-            if arcade.check_for_collision(bullet, self.player_sprite):
+            if arcade.check_for_collision(bullet, self.player_sprite) and (self.player_sprite in self.player_list):
                 self.player_sprite.remove_from_sprite_lists()
                 self.player_sprite.turret.remove_from_sprite_lists()
                 bullet.remove_from_sprite_lists()
