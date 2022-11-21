@@ -399,7 +399,10 @@ class TankGame(arcade.Window):
 
             if enemy.can_shoot and enemy.reaction_time < 0:
                 self.shoot_bullet(enemy.center_x, enemy.center_y, enemy.player_x, enemy.player_y)
-                enemy.reaction_time = Tanks.ENEMY_REACTION_TIME
+                if enemy.difficulty == Tanks.Difficulty.HARD:
+                    self.reaction_time = Tanks.HARD_ENEMY_REACTION_TIME
+                else:
+                    self.reaction_time = Tanks.ENEMY_REACTION_TIME
                     
                 # Reset the shoot cooldown
                 if(enemy.difficulty == Tanks.Difficulty.EASY):

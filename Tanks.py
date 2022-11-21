@@ -18,7 +18,8 @@ PLAYER_SHOOT_COOLDOWN = 1
 PLAYER_MINE_COOLDOWN = 5
 EASY_ENEMY_SHOOT_COOLDOWN = 7
 MEDIUM_ENEMY_SHOOT_COOLDOWN = 5
-HARD_ENEMY_SHOOT_COOLDOWN = 3 
+HARD_ENEMY_SHOOT_COOLDOWN = 3
+HARD_ENEMY_REACTION_TIME = 1
 ENEMY_REACTION_TIME = 2
 PLAYER_TRACK_COOLDOWN = 0.3
 MOVE_COOLDOWN = 1
@@ -108,7 +109,10 @@ class EnemyTank(arcade.Sprite):
         self.cooldown = cooldown
         self.move_cooldown = MOVE_COOLDOWN
         self.move_rand_int = 0
-        self.reaction_time = ENEMY_REACTION_TIME
+        if difficulty == Difficulty.HARD:
+            self.reaction_time = HARD_ENEMY_REACTION_TIME
+        else:
+            self.reaction_time = ENEMY_REACTION_TIME
         self.direction = 0
 
     def update(self):
