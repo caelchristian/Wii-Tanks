@@ -446,11 +446,12 @@ class TankGame(arcade.Window):
 
         if len(self.player_list) > 0:
             mine_death_player_list = arcade.check_for_collision_with_list(self.player_sprite, self.explosions_list)
-            if len(mine_death_player_list) > 0 and not self.round_over:
+            if len(mine_death_player_list) > 0:
                 self.player_sprite.remove_from_sprite_lists()
                 self.player_sprite.turret.remove_from_sprite_lists()
-                self.round_lost = True
-                self.player_lives -= 1
+                if len(self.enemy_list) != 0:
+                    self.round_lost = True
+                    self.player_lives -= 1
 
         for obstacle in self.breakable_obstacle_list:
             hit_list = arcade.check_for_collision_with_list(obstacle, self.explosions_list)
@@ -473,14 +474,15 @@ class TankGame(arcade.Window):
                 self.tanks_destroyed += 1
                 
             # Lose if player gets hit
-            if arcade.check_for_collision(bullet, self.player_sprite) and not self.round_over:
+            if arcade.check_for_collision(bullet, self.player_sprite):
                 self.player_sprite.remove_from_sprite_lists()
                 self.player_sprite.turret.remove_from_sprite_lists()
                 bullet.remove_from_sprite_lists()
                 self.player_sprite.can_shoot = False
                 self.explosion_animation(self.player_sprite.center_x, self.player_sprite.center_y)
-                self.round_lost = True
-                self.player_lives -= 1
+                if len(self.enemy_list) != 0:
+                    self.round_lost = True
+                    self.player_lives -= 1
                 
             # Increment ricochets if wall hit
             hit_list = arcade.check_for_collision_with_list(bullet, self.obstacle_list)
