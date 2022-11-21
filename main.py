@@ -69,8 +69,6 @@ class TankGame(arcade.Window):
         self.explosion_texture_list = arcade.load_spritesheet(file_name="assets/explosions_sheet.png", sprite_width=130, sprite_height=130, columns=5, count=5)
         self.player_texture_list = [arcade.load_texture(f"assets/tankBody_blue{i}.png") for i in range(4)]
 
-        # Used for dynamically referencing next move audio file "sounds/move1-4.wav"
-        self.move_num_dict = {}
         self.total_moves = 0
         self.player = None
 
@@ -88,18 +86,13 @@ class TankGame(arcade.Window):
         self.shoot2 = arcade.sound.load_sound("sounds/shoot2.wav")
         self.explode1 = arcade.sound.load_sound("sounds/explode1.wav")
         self.explode2 = arcade.sound.load_sound("sounds/explode2.wav")
-        self.richochet1 = arcade.sound.load_sound("sounds/richochet1.wav")
-        self.richochet2 = arcade.sound.load_sound("sounds/richochet2.wav")
         self.move = arcade.load_sound("sounds/move.wav")
         
         # Game sfx
-        self.whistle = arcade.load_sound("sounds/whistle.wav")
         self.round_start = arcade.load_sound("sounds/Round Start.wav")
-        self.round_fail = arcade.load_sound("sounds/Round Failure.wav")
         self.round_win = arcade.load_sound("sounds/Round Win.wav")
         self.round_fail = arcade.load_sound("sounds/Round Failure.wav")
         self.results = arcade.load_sound("sounds/Results.wav")
-        self.round_fail = arcade.load_sound("sounds/Round Failure.wav")
         
         # Load music each level
         if self.level_num < 9:
@@ -250,7 +243,6 @@ class TankGame(arcade.Window):
                         font_name="Kenney Mini Square",
                         width=Tanks.SCREEN_WIDTH,
                         align="center")
-                        
             # Display round won during transition time
             if self.end_level_time < Tanks.END_LEVEL_TIME and not self.round_lost and not self.round_over:
                 arcade.draw_text(text=f"Mission Cleared!", 
@@ -273,7 +265,6 @@ class TankGame(arcade.Window):
                             width=Tanks.SCREEN_WIDTH,
                             align="center",
                             )
-            
             arcade.draw_text(text=f"Tanks destroyed: {self.tanks_destroyed}\n" +
                              f"Levels cleared: {self.level_num-1}/{self.level_num_max}",
                             start_x=0, 
@@ -284,7 +275,6 @@ class TankGame(arcade.Window):
                             width=Tanks.SCREEN_WIDTH,
                             align="center",
                             )
-            
             arcade.draw_text(text=f"Press the escape key to exit.",
                 start_x=0, 
                 start_y=100,
@@ -504,7 +494,8 @@ class TankGame(arcade.Window):
                 
             # Increment ricochets if wall hit
             hit_list = arcade.check_for_collision_with_list(bullet, self.obstacle_list)
-            if len(hit_list) > 0:
+            hit_list2 = arcade.check_for_collision_with_list(bullet, self.breakable_obstacle_list)
+            if len(hit_list) > 0 or len(hit_list2) > 0:
                 bullet.num_ricochets += 1
                     
             # Explode if an explodable is hit
@@ -769,7 +760,8 @@ class TankGame(arcade.Window):
             self.tracks_sprite.center_y = center_y
             self.tracks_list.append(self.tracks_sprite)
             
-            arcade.play_sound(self.move, volume=.2)
+            if isinstance(sprite, Tanks.PlayerTank):
+                arcade.play_sound(self.move, volume=.2)
 
             # Reset the track cooldown
             sprite.track_cooldown = 0.3
