@@ -17,5 +17,11 @@ This is a Python implementation of the Wii Play Tanks game, made using the Pytho
 - You can plant a mine using the Space bar
 - Try and beat all the levels by destroying the enemy tanks!
 
+## Some rules to take note of
+- Exploding anything (obstacles, enemy tanks, bullets, player tanks) will explode everything within the same vicinity.
+- You will have to wait a few seconds before you can shoot bullets again and before you can place a mine again. No spamming!
+- Bullets can only richochet twice before disappearing.
+- The darker boxes can be blown up with mines, the lighter boxes can not.
+
 ## Assets/Sounds Source
 We did not create the assets nor the sounds used in the game. They were sourced from the website https://kenney-assets.itch.io/top-down-tanks-redux
